@@ -4,15 +4,12 @@ using GeneticSharp.Runner.UnityApp.Commons;
 public class CreatureChromosome : BitStringChromosome<IPhenotypeEntity>
 {
     private CreatureSampleConfig m_config;
-    
-    public int m_nodeCount;
-    public int m_muscleCount;
 
     public CreatureChromosome(CreatureSampleConfig config)
     {
         m_config = config;
-        m_nodeCount = config.nodeCount;
-        m_muscleCount = config.muscleCount;
+        NodeCount = config.nodeCount;
+        MuscleCount = config.muscleCount;
 
         var phenotypeEntities = new IPhenotypeEntity[m_config.nodeCount + m_config.muscleCount];
 
@@ -40,4 +37,7 @@ public class CreatureChromosome : BitStringChromosome<IPhenotypeEntity>
         get;
         set;
     }
+
+    public int NodeCount { get; private set; }
+    public int MuscleCount { get; private set; }
 }
