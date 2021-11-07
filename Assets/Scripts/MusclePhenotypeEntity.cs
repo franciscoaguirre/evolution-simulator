@@ -11,11 +11,31 @@ public class MusclePhenotypeEntity : PhenotypeEntityBase
     {
         Phenotypes = new IPhenotype[]
         {
-            new Phenotype("maxLength", lengthBits),
-            new Phenotype("minLength", lengthBits),
-            new Phenotype("strength", strengthBits),
-            new Phenotype("firstNode", indexBits),
-            new Phenotype("secondNode", indexBits),
+            new Phenotype("maxLength", lengthBits)
+            {
+                MinValue = 1,
+                MaxValue = 10,
+            },
+            new Phenotype("minLength", lengthBits)
+            {
+                MinValue = 1,
+                MaxValue = 10,
+            },
+            new Phenotype("strength", strengthBits)
+            {
+                MinValue = 1,
+                MaxValue = 10,
+            },
+            new Phenotype("firstNode", indexBits)
+            {
+                MinValue = 1,
+                MaxValue = 10,
+            },
+            new Phenotype("secondNode", indexBits)
+            {
+                MinValue = 1,
+                MaxValue = 10,
+            },
         };
     }
 

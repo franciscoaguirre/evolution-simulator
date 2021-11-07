@@ -38,6 +38,8 @@ public class CreatureChromosome : BitStringChromosome<IPhenotypeEntity>
         set;
     }
 
+    public bool Evaluated { get; set; }
+
     public int NodeCount { get; private set; }
     public int MuscleCount { get; private set; }
 }

@@ -8,17 +8,17 @@ public class CreatureCrossover : CrossoverBase
 {
     public CreatureCrossover(float mixProbability = 0.6f) : base(2, 2)
     {
-        MixProbability = mixProbability
+        MixProbability = mixProbability;
     }
 
     public float MixProbability { get; set; }
 
-    protected override List<CreatureCromosome> PerformCross(List<CreatureCromosome> parents)
+    protected override IList<IChromosome> PerformCross(IList<IChromosome> parents)
     {
-        var firstParent = parents[0];
-        var secondParent = parents[1];
-        var firstChild = firstParent.CreateNew();
-        var secondChild = secondParent.CreateNew();
+        var firstParent = parents[0] as CreatureChromosome;
+        var secondParent = parents[1] as CreatureChromosome;
+        var firstChild = firstParent.CreateNew() as CreatureChromosome;
+        var secondChild = secondParent.CreateNew() as CreatureChromosome;
 
         int nodeCount = Math.Min(firstParent.NodeCount, secondParent.NodeCount);
 
@@ -50,6 +50,6 @@ public class CreatureCrossover : CrossoverBase
             }
         }
 
-        return new List<CreatureCromosome> { firstChild, secondChild };
+        return new List<IChromosome> { firstChild, secondChild };
     }
 }

@@ -10,10 +10,26 @@ public class NodePhenotypeEntity : PhenotypeEntityBase
     {
         Phenotypes = new IPhenotype[]
         {
-            new Phenotype("x", positionBits),
-            new Phenotype("y", positionBits),
-            new Phenotype("z", positionBits),
-            new Phenotype("Weight", weightBits),
+            new Phenotype("x", positionBits)
+            {
+                MinValue = 1,
+                MaxValue = 10,
+            },
+            new Phenotype("y", positionBits)
+            {
+                MinValue = 1,
+                MaxValue = 10,
+            },
+            new Phenotype("z", positionBits)
+            {
+                MinValue = 1,
+                MaxValue = 10,
+            },
+            new Phenotype("Weight", weightBits)
+            {
+                MinValue = 1,
+                MaxValue = 10,
+            },
         };
     }
 
