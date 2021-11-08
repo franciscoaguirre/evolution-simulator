@@ -6,6 +6,9 @@ public class NodePhenotypeEntity : PhenotypeEntityBase
     public const int weightBits = 8;
     public const int positionBits = 8;
 
+    public const float minValue = 1f;
+    public const float maxValue = 10f;
+
     public NodePhenotypeEntity(CreatureSampleConfig config)
     {
         Phenotypes = new IPhenotype[]
@@ -38,9 +41,9 @@ public class NodePhenotypeEntity : PhenotypeEntityBase
         get
         {
             return new Vector3(
-                (float) Phenotypes[0].Value,
-                (float) Phenotypes[1].Value,
-                (float) Phenotypes[2].Value
+                Helpers.MinMax((float) Phenotypes[0].Value, minValue, maxValue),
+                Helpers.MinMax((float) Phenotypes[1].Value, minValue, maxValue),
+                Helpers.MinMax((float) Phenotypes[2].Value, minValue, maxValue)
             );
         }
     }

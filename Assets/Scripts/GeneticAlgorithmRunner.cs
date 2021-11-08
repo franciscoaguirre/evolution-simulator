@@ -14,8 +14,8 @@ public class GeneticAlgorithmRunner : SampleControllerBase
     private CreatureSampleConfig m_creatureSampleConfig;
     private int numberOfSimultaneousExecutions = 100;
     private CreatureFitness m_fitness;
-    private PrefabPool m_prefabPool;
-    public GameObject evaluationPrefab;
+    public GameObject m_creaturePrefab;
+    public Vector3 m_lastPosition;
 
     protected override GeneticAlgorithm CreateGA()
     {
@@ -38,14 +38,33 @@ public class GeneticAlgorithmRunner : SampleControllerBase
 
     protected override void StartSample()
     {
-        m_prefabPool = new PrefabPool(evaluationPrefab);
+        m_lastPosition = new Vector3(0f, 1f, 0f);
     }
 
     protected override void UpdateSample()
     {
         while (m_fitness.ChromosomesToEndEvaluation.Count > 0)
         {
+            CreatureChromosome chromosome;
+            m_fitness.ChromosomesToEndEvaluation.TryTake(out chromosome);
+            chromosome.Evaluated = true;
+        }
 
+        while (m_fitness.ChromosomesToBeginEvaluation.Count > 0)
+        {
+            CreatureChromosome chromosome;
+            m_fitness.ChromosomesToBeginEvaluation.TryTake(out chromosome);
+            chromosome.Evaluated = false;
+            chromosome.MaxDistance = 0;
+
+            var creature = (GameObject) Instantiate(m_creaturePrefab);
+
+            var creatureController = creature.GetComponent<CreatureController>();
+            creature.transform.position = m_lastPosition;
+
+            m_lastPosition += Vector3.forward * 10f;
+
+            creatureController.SetChromosome(chromosome, m_creatureSampleConfig); // TODO: Add config
         }
     }
 }

@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5807232089819196179}
+  - component: {fileID: 588879817}
   m_Layer: 0
   m_Name: Creature
   m_TagString: Untagged
@@ -30,3 +31,17 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &588879817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5598015730508361168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04f269f99df172049bdcca9164952c60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_nodePrefab: {fileID: 9119746912638896874, guid: 8900bb1aee2774743b552176e44c6803, type: 3}
+  m_musclePrefab: {fileID: 8422570515677820096, guid: 685be4d4f66a4394580ef519f57f8d46, type: 3}

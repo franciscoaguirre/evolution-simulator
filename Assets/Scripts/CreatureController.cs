@@ -4,7 +4,19 @@ using UnityEngine;
 
 public class CreatureController : MonoBehaviour
 {
+    [Header("Prefabs")]
+    [SerializeField] private GameObject m_nodePrefab;
+    [SerializeField] private GameObject m_musclePrefab;
+
     public CreatureChromosome Chromosome { get; private set; }
+    public List<GameObject> Nodes { get; private set; }
+    public List<GameObject> Muscles { get; private set; }
+
+    public void Awake()
+    {
+        Nodes = new List<GameObject>();
+        Muscles = new List<GameObject>();
+    }
 
     public void SetChromosome(CreatureChromosome chromosome, CreatureSampleConfig config)
     {
@@ -30,12 +42,16 @@ public class CreatureController : MonoBehaviour
         // TODO: Check timeout
     }
 
-    private void CreateNode(NodePhenotypeEntity phenotypeEntity)
+    private void CreateNode(NodePhenotypeEntity nodePhenotype)
     {
-        // TODO
+        var node = (GameObject) Instantiate(m_nodePrefab, transform);
+        node.transform.position = nodePhenotype.Position;
+        node.GetComponent<Rigidbody>().mass = nodePhenotype.Weight;
+        Debug.Log(nodePhenotype.Position);
+        Nodes.Add(node);
     }
 
-    private void CreateMuscle(MusclePhenotypeEntity phenotypeEntity)
+    private void CreateMuscle(MusclePhenotypeEntity muscle)
     {
         // TODO
     }
