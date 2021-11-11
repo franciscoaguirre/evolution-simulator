@@ -62,7 +62,7 @@ public class GeneticAlgorithmRunner : SampleControllerBase
             var creatureController = creature.GetComponent<CreatureController>();
             creature.transform.position = m_lastPosition;
 
-            m_lastPosition += Vector3.forward * 10f;
+            m_lastPosition += Vector3.forward * 2f;
 
             creatureController.SetChromosome(chromosome, m_creatureSampleConfig); // TODO: Add config
         }

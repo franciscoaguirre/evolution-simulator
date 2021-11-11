@@ -33,7 +33,7 @@ public class CreatureController : MonoBehaviour
             CreateNode(phenotype as NodePhenotypeEntity);
         }
 
-        for (int i = 0; i < chromosome.MuscleCount; i++)
+        for (int i = chromosome.NodeCount; i < chromosome.NodeCount + chromosome.MuscleCount; i++)
         {
             var phenotype = phenotypes[i];
             CreateMuscle(phenotype as MusclePhenotypeEntity);
@@ -45,14 +45,19 @@ public class CreatureController : MonoBehaviour
     private void CreateNode(NodePhenotypeEntity nodePhenotype)
     {
         var node = (GameObject) Instantiate(m_nodePrefab, transform);
-        node.transform.position = nodePhenotype.Position;
+        node.transform.localPosition = nodePhenotype.Position;
         node.GetComponent<Rigidbody>().mass = nodePhenotype.Weight;
-        Debug.Log(nodePhenotype.Position);
         Nodes.Add(node);
     }
 
-    private void CreateMuscle(MusclePhenotypeEntity muscle)
+    private void CreateMuscle(MusclePhenotypeEntity musclePhenotype)
     {
-        // TODO
+        var muscle = (GameObject) Instantiate(m_musclePrefab, transform);
+        var muscleController = muscle.GetComponent<MuscleController>();
+        var node1 = Nodes[musclePhenotype.FirstNode];
+        var node2 = Nodes[musclePhenotype.SecondNode];
+        muscleController.SetNodes(node1, node2);
+        muscleController.Strength = musclePhenotype.Strength;
+        muscleController.SetLength(musclePhenotype.MinLength, musclePhenotype.MaxLength);
     }
 }

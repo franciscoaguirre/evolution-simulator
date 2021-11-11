@@ -29,12 +29,12 @@ public class MusclePhenotypeEntity : PhenotypeEntityBase
             new Phenotype("firstNode", indexBits)
             {
                 MinValue = 1,
-                MaxValue = 10,
+                MaxValue = 2,
             },
             new Phenotype("secondNode", indexBits)
             {
                 MinValue = 1,
-                MaxValue = 10,
+                MaxValue = 2,
             },
         };
     }
