@@ -12,12 +12,14 @@ public class MuscleController : MonoBehaviour
     private float m_maxLength;
     private float m_period;
     private IEnumerator m_internalClock;
+    private LineDrawer m_lineDrawer;
 
     public float Strength { get; set; }
 
     // Start is called before the first frame update
     void Start()
     {
+        m_lineDrawer = new LineDrawer();
         m_period = Random.Range(0.0f, 2.0f);
     }
 
@@ -44,7 +46,8 @@ public class MuscleController : MonoBehaviour
             return;
         }
 
-        Debug.DrawLine(m_node1.transform.position, m_node2.transform.position, Color.magenta);
+        m_lineDrawer.DrawLineInGameView(m_node1.transform.position, m_node2.transform.position, Color.magenta);
+        // Debug.DrawLine(m_node1.transform.position, m_node2.transform.position, Color.magenta);
         // var distance = Vector3.Distance(m_node1.transform.position, m_node2.transform.position);
         // if (distance <= m_minLength || distance >= m_maxLength)
         // {
