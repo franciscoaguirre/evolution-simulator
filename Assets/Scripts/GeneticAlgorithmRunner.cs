@@ -47,6 +47,7 @@ public class GeneticAlgorithmRunner : SampleControllerBase
         {
             CreatureChromosome chromosome;
             m_fitness.ChromosomesToEndEvaluation.TryTake(out chromosome);
+
             chromosome.Evaluated = true;
         }
 

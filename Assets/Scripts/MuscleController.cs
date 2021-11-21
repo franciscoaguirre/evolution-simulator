@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class MuscleController : MonoBehaviour
 {
-    private GameObject m_node1;
-    private GameObject m_node2;
-    private Rigidbody m_node1Rb;
-    private Rigidbody m_node2Rb;
-    private float m_minLength;
-    private float m_maxLength;
-    private float m_period;
-    private IEnumerator m_internalClock;
-    private LineDrawer m_lineDrawer;
+    [SerializeField] private GameObject m_node1;
+    [SerializeField] private GameObject m_node2;
+    [SerializeField] private Rigidbody m_node2Rb;
+    [SerializeField] private Rigidbody m_node1Rb;
+    [SerializeField] private float m_minLength;
+    [SerializeField] private float m_maxLength;
+    [SerializeField] private float m_period;
+    [SerializeField] private IEnumerator m_internalClock;
+    [SerializeField] private LineDrawer m_lineDrawer;
 
     public float Strength { get; set; }
 

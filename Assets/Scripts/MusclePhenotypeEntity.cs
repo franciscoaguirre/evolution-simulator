@@ -69,6 +69,11 @@ public class MusclePhenotypeEntity : PhenotypeEntityBase
         {
             return (int) Phenotypes[3].Value;
         }
+
+        set
+        {
+            Phenotypes[3].Value = value;
+        }
     }
     
     public int SecondNode
@@ -76,6 +81,11 @@ public class MusclePhenotypeEntity : PhenotypeEntityBase
         get
         {
             return (int) Phenotypes[4].Value;
+        }
+
+        set
+        {
+            Phenotypes[4].Value = value;
         }
     }
 }
