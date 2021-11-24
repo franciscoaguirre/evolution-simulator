@@ -88,4 +88,9 @@ public class MusclePhenotypeEntity : PhenotypeEntityBase
             Phenotypes[4].Value = value;
         }
     }
+
+    public override string ToString()
+    {
+        return $"Nodes: {FirstNode}-{SecondNode}";
+    }
 }

@@ -12,7 +12,7 @@ public class GeneticAlgorithmRunner : SampleControllerBase
 {
     public float timeScale = 1;
     private CreatureSampleConfig m_creatureSampleConfig;
-    private int numberOfSimultaneousExecutions = 100;
+    private int numberOfSimultaneousExecutions = 2;
     private CreatureFitness m_fitness;
     public GameObject m_creaturePrefab;
     public Vector3 m_lastPosition;

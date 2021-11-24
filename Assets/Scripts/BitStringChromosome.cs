@@ -13,6 +13,7 @@ namespace GeneticSharp.Runner.UnityApp.Commons
     {
         private TPhenotypeEntity[] m_phenotypeEntities;
         private string m_originalValueStringRepresentation;
+        private CreatureSampleConfig m_config;
 
         protected BitStringChromosome()
             : base(2)
@@ -46,21 +47,39 @@ namespace GeneticSharp.Runner.UnityApp.Commons
             return m_phenotypeEntities;
         }
 
+        protected void CreateGenes(CreatureSampleConfig config)
+        {
+            m_config = config;
+            CreateGenes();
+        }
+
         protected override void CreateGenes()
         {
-            var valuesLength = m_phenotypeEntities.Sum(p => p.Phenotypes.Length);
-            var originalValues = new double[valuesLength];
-            var totalBits = new int[valuesLength];
-            var fractionBits = new int[valuesLength];
             IPhenotype phenotype;
 
-            int valueIndex = 0;
             foreach (var entity in m_phenotypeEntities)
             {
                 for (int i = 0; i < entity.Phenotypes.Length; i++)
                 {
                     phenotype = entity.Phenotypes[i];
-                    originalValues[valueIndex] = phenotype.RandomValue();
+                    phenotype.Value = phenotype.RandomValue();
+                }
+            }
+
+            Correct();
+
+            var valuesLength = m_phenotypeEntities.Sum(p => p.Phenotypes.Length);
+            var originalValues = new double[valuesLength];
+            var totalBits = new int[valuesLength];
+            var fractionBits = new int[valuesLength];
+            int valueIndex = 0;
+
+            foreach (var entity in m_phenotypeEntities)
+            {
+                for (int i = 0; i < entity.Phenotypes.Length; i++)
+                {
+                    phenotype = entity.Phenotypes[i];
+                    originalValues[valueIndex] = phenotype.Value;
                     totalBits[valueIndex] = phenotype.Length;
                     fractionBits[valueIndex] = 0;
 
@@ -76,6 +95,62 @@ namespace GeneticSharp.Runner.UnityApp.Commons
                     fractionBits));
 
             base.CreateGenes();
+        }
+
+        private void Correct()
+        {
+            var connectedNodes = new List<int>();
+            var danglingNodes = new List<int>();
+
+            for (var i = m_config.nodeCount; i < m_config.nodeCount + m_config.muscleCount; i++)
+            {
+                var phenotype = m_phenotypeEntities[i] as MusclePhenotypeEntity;
+
+                if (phenotype.FirstNode == phenotype.SecondNode)
+                {
+                    var random = new System.Random();
+                    var randomNode = random.Next(0, m_config.nodeCount);
+                    phenotype.SecondNode = randomNode;
+                }
+
+                connectedNodes.Add(phenotype.FirstNode);
+                connectedNodes.Add(phenotype.SecondNode);
+            }
+
+            if (connectedNodes.Count == 0)
+                return;
+
+            for (var i = 0; i < m_config.nodeCount; i++)
+            {
+                if (connectedNodes.IndexOf(i) != -1)
+                    continue;
+
+                danglingNodes.Add(i);
+            }
+
+            var newMuscles = new List<IPhenotypeEntity>();
+            foreach (var danglingNode in danglingNodes)
+            {
+                m_config.muscleCount++;
+                var muscle = new MusclePhenotypeEntity(m_config);
+
+                muscle.FirstNode = danglingNode;
+
+                var random = new System.Random();
+                var randomConnectedNode = random.Next(0, connectedNodes.Count - 1);
+                muscle.SecondNode = connectedNodes[randomConnectedNode];
+
+                newMuscles.Add(muscle);
+
+                connectedNodes.Add(danglingNode);
+            }
+
+            var newMusclesArray = newMuscles.ToArray();
+            var newArray = new TPhenotypeEntity[m_phenotypeEntities.Length + newMusclesArray.Length];
+            System.Array.Copy(m_phenotypeEntities, newArray, m_phenotypeEntities.Length);
+            System.Array.Copy(newMusclesArray, 0, newArray, m_phenotypeEntities.Length, newMusclesArray.Length);
+
+            m_phenotypeEntities = newArray;
         }
 
         public override Gene GenerateGene(int geneIndex)

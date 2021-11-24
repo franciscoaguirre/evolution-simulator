@@ -52,6 +52,8 @@ public class CreatureController : MonoBehaviour
 
     private void CreateMuscle(MusclePhenotypeEntity musclePhenotype)
     {
+        Debug.Log("Muscle coming in");
+        Debug.Log(musclePhenotype);
         var muscle = (GameObject) Instantiate(m_musclePrefab, transform);
         var muscleController = muscle.GetComponent<MuscleController>();
         var node1 = Nodes[musclePhenotype.FirstNode];
