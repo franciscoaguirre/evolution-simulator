@@ -1,6 +1,11 @@
 use bevy::prelude::{shape as bevyShape, *};
 use bevy_rapier3d::prelude::*;
 
+pub struct Node {
+    pub position: Vec3,
+    pub mass: f32,
+}
+
 pub fn create_node(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
@@ -20,7 +25,12 @@ pub fn create_node(
     };
 
     commands
-        .spawn_bundle(rigid_body)
+        .spawn()
+        .insert(Node {
+            position: Vec3::new(0.0, 10.0, 0.0),
+            mass: 1.0,
+        })
+        .insert_bundle(rigid_body)
         .insert_bundle(collider)
         .with_children(|parent| {
             // child sphere
