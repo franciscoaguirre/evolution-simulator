@@ -3,7 +3,9 @@ use bevy_rapier3d::prelude::*;
 
 use crate::genetic_algorithm::node_phenotype::NodePhenotype;
 
-pub struct Node;
+pub struct Node {
+    pub friction: f32,
+}
 
 pub fn create_node(
     parent: &mut ChildBuilder,
@@ -19,16 +21,12 @@ pub fn create_node(
     let collider = ColliderBundle {
         position: (node_phenotype.position + position_offset).into(),
         shape: ColliderShape::ball(0.5),
-        material: ColliderMaterial {
-            restitution: 0.7,
-            ..Default::default()
-        },
         ..Default::default()
     };
 
     parent
         .spawn()
-        .insert(Node)
+        .insert(Node { friction: node_phenotype.friction })
         .insert_bundle(rigid_body)
         .insert_bundle(collider)
         .insert_bundle(PbrBundle {

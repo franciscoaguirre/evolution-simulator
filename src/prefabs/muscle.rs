@@ -68,6 +68,7 @@ fn apply_forces(
     time: Res<Time>,
     mut stopwatch: ResMut<Stopwatch>,
     muscles: Query<&Muscle>,
+    nodes: Query<&node::Node>,
     node_positions: Query<&RigidBodyPosition, With<node::Node>>,
     mut node_velocities: Query<&mut RigidBodyVelocity, With<node::Node>>,
 ) {
@@ -91,20 +92,23 @@ fn apply_forces(
         let second_to_first_direction = (first_node_position - second_node_position).normalize();
         let muscle_length = (second_node_position - first_node_position).norm();
 
+        let first_node_friction = nodes.get(muscle.nodes.0).unwrap().friction;
+        let second_node_friction = nodes.get(muscle.nodes.1).unwrap().friction;
+
         let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
         if should_contract && muscle_length > muscle.contracted_length {
-            first_node_velocity.linvel = first_to_second_direction * muscle.strength;
+            first_node_velocity.linvel = first_to_second_direction * muscle.strength * (1.0 / first_node_friction);
         } else if !should_contract && muscle_length < muscle.extended_length {
-            first_node_velocity.linvel = second_to_first_direction * muscle.strength;
+            first_node_velocity.linvel = second_to_first_direction * muscle.strength * (1.0 / first_node_friction);
         } else {
             first_node_velocity.linvel = Vec3::ZERO.into();
         }
 
         let mut second_node_velocity = node_velocities.get_mut(muscle.nodes.1).unwrap();
         if should_contract && muscle_length > muscle.contracted_length {
-            second_node_velocity.linvel = second_to_first_direction * muscle.strength;
+            second_node_velocity.linvel = second_to_first_direction * muscle.strength * (1.0 / second_node_friction);
         } else if !should_contract && muscle_length < muscle.extended_length {
-            second_node_velocity.linvel = first_to_second_direction * muscle.strength;
+            second_node_velocity.linvel = first_to_second_direction * muscle.strength * (1.0 / second_node_friction);
         } else {
             second_node_velocity.linvel = Vec3::ZERO.into();
         }

@@ -33,7 +33,7 @@ fn setup(
         },
         node_phenotype::NodePhenotype {
             position: Vec3::new(5.0, 0.5, 5.0),
-            friction: 1.0,
+            friction: 2.0,
         },
     ];
     let muscles = vec![muscle_phenotype::MusclePhenotype {
