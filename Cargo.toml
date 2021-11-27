@@ -1,5 +1,5 @@
 [package]
-name = "evolutionary-alg-test"
+name = "evolution_simulator"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,3 +9,4 @@ edition = "2021"
 bevy = { version = "0.5.0", features = ["dynamic"] }
 bevy_fly_camera = "0.7.0"
 bevy_rapier3d = "0.11.0"
+bevy_prototype_debug_lines = "0.3.2"

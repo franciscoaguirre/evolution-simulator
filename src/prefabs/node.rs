@@ -1,23 +1,23 @@
 use bevy::prelude::{shape as bevyShape, *};
 use bevy_rapier3d::prelude::*;
 
-pub struct Node {
-    pub position: Vec3,
-    pub mass: f32,
-}
+use crate::genetic_algorithm::node_phenotype::NodePhenotype;
+
+pub struct Node;
 
 pub fn create_node(
     parent: &mut ChildBuilder,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
-    node: &Node,
+    node_phenotype: &NodePhenotype,
     position_offset: Vec3,
-) {
+) -> Entity {
     let rigid_body = RigidBodyBundle {
+        position: (node_phenotype.position + position_offset).into(),
         ..Default::default()
     };
     let collider = ColliderBundle {
-        position: (node.position + position_offset).into(),
+        position: (node_phenotype.position + position_offset).into(),
         shape: ColliderShape::ball(0.5),
         material: ColliderMaterial {
             restitution: 0.7,
@@ -28,7 +28,7 @@ pub fn create_node(
 
     parent
         .spawn()
-        // .insert(node)
+        .insert(Node)
         .insert_bundle(rigid_body)
         .insert_bundle(collider)
         .insert_bundle(PbrBundle {
@@ -42,5 +42,6 @@ pub fn create_node(
             }),
             ..Default::default()
         })
-        .insert(ColliderPositionSync::Discrete);
+        .insert(ColliderPositionSync::Discrete)
+        .id()
 }

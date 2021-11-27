@@ -1,26 +1,29 @@
 use bevy::prelude::*;
 
-use crate::prefabs::node;
+use crate::genetic_algorithm::creature_chromosome::CreatureChromosome;
+
 use crate::prefabs::muscle;
+use crate::prefabs::node;
 
-#[derive(Default)]
-pub struct Creature {
-    pub position: Vec3,
-    pub nodes: Vec<node::Node>,
-    pub muscles: Vec<muscle::Muscle>,
-}
+pub struct Creature;
 
-pub fn create_creature(commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>>, materials: &mut ResMut<Assets<StandardMaterial>>, creature: Creature) {
-    commands.spawn()
-        .with_children(|parent| {
+pub fn create_creature(
+    commands: &mut Commands,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+    creature_chromosome: CreatureChromosome,
+    position: Vec3,
+) {
+    let mut nodes: Vec<Entity> = vec![];
 
-            for node in creature.nodes.iter() {
-                node::create_node(parent, meshes, materials, &node, creature.position);
-            }
+    commands.spawn().insert(Creature).with_children(|parent| {
+        for node in creature_chromosome.nodes.iter() {
+            let entity = node::create_node(parent, meshes, materials, &node, position);
+            nodes.push(entity)
+        }
 
-            for muscle in creature.muscles.iter() {
-                muscle::create_muscle(parent, &muscle);
-            }
-
-        });
+        for muscle in creature_chromosome.muscles.iter() {
+            muscle::create_muscle(parent, &muscle, &nodes);
+        }
+    });
 }
