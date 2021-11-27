@@ -1,4 +1,4 @@
-use super::crossable::Crossable;
+use super::operations::{Crossable, Mutable};
 
 /// Represents the characteristics of a Muscle
 pub struct MusclePhenotype {
@@ -50,6 +50,21 @@ impl Crossable for MusclePhenotype {
             } else {
                 other.nodes
             },
+        }
+    }
+}
+
+impl Mutable for MusclePhenotype {
+    /// Mutates a MusclePhenotype
+    fn mutate(&self, mutation_rate: f32) -> Self {
+        MusclePhenotype {
+            extended_time: self.extended_time + (rand::random::<f32>() - 0.5) * mutation_rate,
+            contracted_time: self.contracted_time + (rand::random::<f32>() - 0.5) * mutation_rate,
+            extended_length: self.extended_length + (rand::random::<f32>() - 0.5) * mutation_rate,
+            contracted_length: self.contracted_length
+                + (rand::random::<f32>() - 0.5) * mutation_rate,
+            strength: self.strength + (rand::random::<f32>() - 0.5) * mutation_rate,
+            nodes: self.nodes,
         }
     }
 }
