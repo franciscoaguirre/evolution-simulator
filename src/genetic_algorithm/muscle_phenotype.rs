@@ -1,3 +1,5 @@
+use super::crossable::Crossable;
+
 /// Represents the characteristics of a Muscle
 pub struct MusclePhenotype {
     /// Time the muscle is extending
@@ -12,4 +14,42 @@ pub struct MusclePhenotype {
     pub strength: f32,
     /// The nodes this muscle pulls/pushes
     pub nodes: (usize, usize),
+}
+
+impl Crossable for MusclePhenotype {
+    /// Crosses two MusclePhenotypes. Verify that nodes are present in both parents
+    fn cross(&self, other: &Self) -> Self {
+        MusclePhenotype {
+            extended_time: if rand::random() {
+                self.extended_time
+            } else {
+                other.extended_time
+            },
+            contracted_time: if rand::random() {
+                self.contracted_time
+            } else {
+                other.contracted_time
+            },
+            extended_length: if rand::random() {
+                self.extended_length
+            } else {
+                other.extended_length
+            },
+            contracted_length: if rand::random() {
+                self.contracted_length
+            } else {
+                other.contracted_length
+            },
+            strength: if rand::random() {
+                self.strength
+            } else {
+                other.strength
+            },
+            nodes: if rand::random() {
+                self.nodes
+            } else {
+                other.nodes
+            },
+        }
+    }
 }
