@@ -7,15 +7,17 @@ pub struct Node {
 }
 
 pub fn create_node(
-    commands: &mut Commands,
+    parent: &mut ChildBuilder,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
+    node: &Node,
+    position_offset: Vec3,
 ) {
     let rigid_body = RigidBodyBundle {
-        position: Vec3::new(0.0, 10.0, 0.0).into(),
         ..Default::default()
     };
     let collider = ColliderBundle {
+        position: (node.position + position_offset).into(),
         shape: ColliderShape::ball(0.5),
         material: ColliderMaterial {
             restitution: 0.7,
@@ -24,27 +26,21 @@ pub fn create_node(
         ..Default::default()
     };
 
-    commands
+    parent
         .spawn()
-        .insert(Node {
-            position: Vec3::new(0.0, 10.0, 0.0),
-            mass: 1.0,
-        })
+        // .insert(node)
         .insert_bundle(rigid_body)
         .insert_bundle(collider)
-        .with_children(|parent| {
-            // child sphere
-            parent.spawn_bundle(PbrBundle {
-                mesh: meshes.add(Mesh::from(bevyShape::Icosphere {
-                    radius: 0.5,
-                    subdivisions: 4,
-                })),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::rgb(0.8, 0.7, 0.6),
-                    ..Default::default()
-                }),
+        .insert_bundle(PbrBundle {
+            mesh: meshes.add(Mesh::from(bevyShape::Icosphere {
+                radius: 0.5,
+                subdivisions: 4,
+            })),
+            material: materials.add(StandardMaterial {
+                base_color: Color::rgb(0.8, 0.7, 0.6),
                 ..Default::default()
-            });
+            }),
+            ..Default::default()
         })
         .insert(ColliderPositionSync::Discrete);
 }
