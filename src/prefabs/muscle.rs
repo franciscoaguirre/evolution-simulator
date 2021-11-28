@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 use bevy_prototype_debug_lines::*;
+use bevy_rapier3d::na::{ArrayStorage, Const, Matrix};
 use bevy_rapier3d::prelude::*;
 
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
@@ -68,6 +69,21 @@ fn draw_muscles(
     }
 }
 
+type VectorMatrix =
+    Matrix<f32, Const<3_usize>, Const<1_usize>, ArrayStorage<f32, 3_usize, 1_usize>>;
+
+fn get_node_position(
+    node: Entity,
+    node_positions: &Query<&RigidBodyPosition, With<node::Node>>,
+) -> VectorMatrix {
+    node_positions
+        .get(node)
+        .unwrap()
+        .position
+        .translation
+        .vector
+}
+
 fn apply_forces(
     time: Res<Time>,
     mut muscles: Query<&mut Muscle>,
@@ -77,59 +93,71 @@ fn apply_forces(
     rb_mprops: Query<&RigidBodyMassProps>,
 ) {
     for mut muscle in muscles.iter_mut() {
+        let first_node_position = get_node_position(muscle.nodes.0, &node_positions);
+        let second_node_position = get_node_position(muscle.nodes.1, &node_positions);
+        let first_to_second_direction = (second_node_position - first_node_position).normalize();
+        let second_to_first_direction = (first_node_position - second_node_position).normalize();
+        let muscle_length = (second_node_position - first_node_position).norm();
+
+        let first_node_friction = nodes.get(muscle.nodes.0).unwrap().friction;
+        let second_node_friction = nodes.get(muscle.nodes.1).unwrap().friction;
+
+        let first_node_rb_mprops = rb_mprops.get(muscle.nodes.0).unwrap();
+        let second_node_rb_mprops = rb_mprops.get(muscle.nodes.1).unwrap();
+
+        let impulse_strength_first = muscle.strength * (1.0 / first_node_friction);
+        let impulse_strength_second = muscle.strength * (1.0 / second_node_friction);
+
+        if muscle.contracting && muscle_length <= muscle.contracted_length {
+            let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
+            first_node_velocity.apply_impulse(
+                first_node_rb_mprops,
+                -first_to_second_direction * impulse_strength_first * time.delta_seconds(),
+            );
+            let mut second_node_velocity = node_velocities.get_mut(muscle.nodes.1).unwrap();
+            second_node_velocity.apply_impulse(
+                second_node_rb_mprops,
+                -second_to_first_direction * impulse_strength_second * time.delta_seconds(),
+            );
+        } else if !muscle.contracting && muscle_length >= muscle.extended_length {
+            let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
+            first_node_velocity.apply_impulse(
+                first_node_rb_mprops,
+                -second_to_first_direction * impulse_strength_first * time.delta_seconds(),
+            );
+
+            let mut second_node_velocity = node_velocities.get_mut(muscle.nodes.1).unwrap();
+            second_node_velocity.apply_impulse(
+                second_node_rb_mprops,
+                -first_to_second_direction * impulse_strength_second * time.delta_seconds(),
+            );
+        }
+
         if muscle.timer.tick(time.delta()).just_finished() {
-            let first_node_position = node_positions
-                .get(muscle.nodes.0)
-                .unwrap()
-                .position
-                .translation
-                .vector;
-            let second_node_position = node_positions
-                .get(muscle.nodes.1)
-                .unwrap()
-                .position
-                .translation
-                .vector;
-            let first_to_second_direction =
-                (second_node_position - first_node_position).normalize();
-            let second_to_first_direction =
-                (first_node_position - second_node_position).normalize();
-            let muscle_length = (second_node_position - first_node_position).norm();
-
-            let first_node_friction = nodes.get(muscle.nodes.0).unwrap().friction;
-            let second_node_friction = nodes.get(muscle.nodes.1).unwrap().friction;
-
-            let first_node_rb_mprops = rb_mprops.get(muscle.nodes.0).unwrap();
-            let second_node_rb_mprops = rb_mprops.get(muscle.nodes.1).unwrap();
-
             let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
             if muscle.contracting && muscle_length > muscle.contracted_length {
                 first_node_velocity.apply_impulse(
                     first_node_rb_mprops,
-                    first_to_second_direction * muscle.strength * (1.0 / first_node_friction),
+                    first_to_second_direction * impulse_strength_first,
                 );
             } else if !muscle.contracting && muscle_length < muscle.extended_length {
                 first_node_velocity.apply_impulse(
                     first_node_rb_mprops,
-                    second_to_first_direction * muscle.strength * (1.0 / first_node_friction),
+                    second_to_first_direction * impulse_strength_first,
                 );
-            } else {
-                first_node_velocity.linvel = Vec3::ZERO.into();
             }
 
             let mut second_node_velocity = node_velocities.get_mut(muscle.nodes.1).unwrap();
             if muscle.contracting && muscle_length > muscle.contracted_length {
                 second_node_velocity.apply_impulse(
                     second_node_rb_mprops,
-                    second_to_first_direction * muscle.strength * (1.0 / second_node_friction),
+                    second_to_first_direction * impulse_strength_second,
                 );
             } else if !muscle.contracting && muscle_length < muscle.extended_length {
                 second_node_velocity.apply_impulse(
                     second_node_rb_mprops,
-                    first_to_second_direction * muscle.strength * (1.0 / second_node_friction),
+                    first_to_second_direction * impulse_strength_second,
                 );
-            } else {
-                second_node_velocity.linvel = Vec3::ZERO.into();
             }
 
             muscle.contracting = !muscle.contracting;
