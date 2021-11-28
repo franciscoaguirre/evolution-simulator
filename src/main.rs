@@ -6,7 +6,10 @@ mod prefabs;
 use prefabs::{creature, muscle::MusclePlugin, plane};
 
 mod genetic_algorithm;
-use genetic_algorithm::{creature_chromosome, muscle_phenotype, node_phenotype};
+use genetic_algorithm::{
+    creature_chromosome::CreatureChromosome, muscle_phenotype::MusclePhenotype,
+    node_phenotype::NodePhenotype,
+};
 
 fn setup(
     mut commands: Commands,
@@ -27,24 +30,46 @@ fn setup(
         ..Default::default()
     });
     let nodes = vec![
-        node_phenotype::NodePhenotype {
+        NodePhenotype {
             position: Vec3::new(0.0, 0.5, 0.0),
             friction: 1.0,
         },
-        node_phenotype::NodePhenotype {
+        NodePhenotype {
             position: Vec3::new(5.0, 0.5, 5.0),
             friction: 2.0,
         },
+        // NodePhenotype {
+        //     position: Vec3::new(2.5, 5.0, 2.5),
+        //     friction: 1.5,
+        // },
     ];
-    let muscles = vec![muscle_phenotype::MusclePhenotype {
-        extended_time: 0.5,
-        contracted_time: 0.5,
-        contracted_length: 1.0,
-        extended_length: 8.0,
-        strength: 10.0,
-        nodes: (0, 1),
-    }];
-    let creature = creature_chromosome::CreatureChromosome {
+    let muscles = vec![
+        MusclePhenotype {
+            extended_time: 1.0,
+            contracted_time: 1.0,
+            contracted_length: 1.0,
+            extended_length: 8.0,
+            strength: 1.0,
+            nodes: (0, 1),
+        },
+        // MusclePhenotype {
+        //     extended_time: 1.5,
+        //     contracted_time: 0.5,
+        //     contracted_length: 3.0,
+        //     extended_length: 12.0,
+        //     strength: 15.0,
+        //     nodes: (0, 2),
+        // },
+        // MusclePhenotype {
+        //     extended_time: 1.3,
+        //     contracted_time: 0.7,
+        //     extended_length: 6.0,
+        //     strength: 10.0,
+        //     contracted_length: 1.0,
+        //     nodes: (1, 2),
+        // },
+    ];
+    let creature = CreatureChromosome {
         nodes,
         muscles,
         ..Default::default()
@@ -54,7 +79,7 @@ fn setup(
         &mut meshes,
         &mut materials,
         creature,
-        Vec3::default(),
+        Vec3::ZERO,
     );
     plane::create_plane(&mut commands, &mut meshes, &mut materials);
 }
