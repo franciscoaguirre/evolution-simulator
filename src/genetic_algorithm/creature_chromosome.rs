@@ -6,7 +6,7 @@ use super::{
     constants::ELIMINATION_MUTATION_CHANCE,
     muscle_phenotype::MusclePhenotype,
     node_phenotype::NodePhenotype,
-    operations::{Breedable, Correctable, Crossable, Mutable},
+    operations::{Breedable, Correctable, Crossable, Mutable, RandomCreatable},
 };
 
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -228,6 +228,23 @@ impl Correctable for CreatureChromosome {
         self.tag_graph_components(0, &mut Vec::new(), &mut graph_components, 1);
 
         graph_components.iter().all(|&component| component == 1)
+    }
+}
+
+impl RandomCreatable for CreatureChromosome {
+    fn random() -> Self {
+        let nodes: Vec<NodePhenotype> = (2..rand::random::<usize>())
+            .map(|_| NodePhenotype::random())
+            .collect();
+        let muscles: Vec<MusclePhenotype> = (1..rand::random::<usize>())
+            .map(|_| MusclePhenotype::random())
+            .collect();
+
+        let mut creature = CreatureChromosome { nodes, muscles };
+
+        creature.correct();
+
+        creature
     }
 }
 

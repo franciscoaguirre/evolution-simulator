@@ -1,6 +1,6 @@
 use super::{
     constants::{POSITION_MUTATION_CHANCE, SINGLE_VALUE_MUTATION_CHANCE},
-    operations::{Crossable, Mutable},
+    operations::{Crossable, Mutable, RandomCreatable},
 };
 use bevy::prelude::*;
 
@@ -42,5 +42,18 @@ impl Mutable for NodePhenotype {
         }
 
         NodePhenotype { position, friction }
+    }
+}
+
+impl RandomCreatable for NodePhenotype {
+    fn random() -> Self {
+        NodePhenotype {
+            position: Vec3::new(
+                rand::random::<f32>() * 2.0 - 1.0,
+                rand::random::<f32>() * 2.0 - 1.0,
+                rand::random::<f32>() * 2.0 - 1.0,
+            ),
+            friction: rand::random::<f32>() * 2.0 - 1.0,
+        }
     }
 }

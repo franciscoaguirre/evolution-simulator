@@ -1,6 +1,6 @@
 use super::{
     constants::SINGLE_VALUE_MUTATION_CHANCE,
-    operations::{Crossable, Mutable},
+    operations::{Crossable, Mutable, RandomCreatable},
 };
 
 /// Represents the characteristics of a Muscle
@@ -80,32 +80,32 @@ impl Mutable for MusclePhenotype {
 
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
             extended_time = extended_time + (rand::random::<f32>() - 0.5) * mutation_rate;
-            extended_time = extended_time.min(MIN_EXTENDED_TIME).max(MAX_EXTENDED_TIME);
+            extended_time = extended_time.max(MIN_EXTENDED_TIME).min(MAX_EXTENDED_TIME);
         }
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
             contracted_time = contracted_time + (rand::random::<f32>() - 0.5) * mutation_rate;
             contracted_time = contracted_time
-                .min(MIN_CONTRACTED_TIME)
-                .max(MAX_CONTRACTED_TIME);
+                .max(MIN_CONTRACTED_TIME)
+                .min(MAX_CONTRACTED_TIME);
         }
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
             extended_length = extended_length + (rand::random::<f32>() - 0.5) * mutation_rate;
             extended_length = extended_length
-                .min(MIN_EXTENDED_LENGTH)
-                .max(MAX_EXTENDED_LENGTH);
+                .max(MIN_EXTENDED_LENGTH)
+                .min(MAX_EXTENDED_LENGTH);
         }
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
             contracted_length = contracted_length + (rand::random::<f32>() - 0.5) * mutation_rate;
             contracted_length = contracted_length
-                .min(MIN_CONTRACTED_LENGTH)
-                .max(MAX_CONTRACTED_LENGTH)
-                .max(extended_length);
+                .max(MIN_CONTRACTED_LENGTH)
+                .min(MAX_CONTRACTED_LENGTH)
+                .min(extended_length);
 
-            extended_length = extended_length.min(contracted_length);
+            extended_length = extended_length.max(contracted_length);
         }
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
             strength = strength + (rand::random::<f32>() - 0.5) * mutation_rate;
-            strength = strength.min(MIN_STRENGTH).max(MAX_STRENGTH);
+            strength = strength.max(MIN_STRENGTH).min(MAX_STRENGTH);
         }
 
         MusclePhenotype {
@@ -115,6 +115,19 @@ impl Mutable for MusclePhenotype {
             contracted_length,
             strength,
             nodes: self.nodes,
+        }
+    }
+}
+
+impl RandomCreatable for MusclePhenotype {
+    fn random() -> Self {
+        MusclePhenotype {
+            extended_time: rand::random::<f32>(),
+            contracted_time: rand::random::<f32>(),
+            extended_length: rand::random::<f32>(),
+            contracted_length: rand::random::<f32>(),
+            strength: rand::random::<f32>(),
+            nodes: (0, 0),
         }
     }
 }

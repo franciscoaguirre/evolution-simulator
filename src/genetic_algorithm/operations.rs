@@ -25,3 +25,10 @@ pub trait Correctable {
     /// Checks if the object is correct
     fn is_correct(&self) -> bool;
 }
+
+pub trait RandomCreatable {
+    /// Create a random object
+    fn random() -> Self;
+}
+
+pub trait Individual: Breedable + Mutable + Correctable + RandomCreatable + Clone {}
