@@ -1,7 +1,7 @@
 use bevy::core::Stopwatch;
 use bevy::prelude::*;
 use bevy_prototype_debug_lines::*;
-use bevy_rapier3d::na::{ArrayStorage, ComplexField, Const, Matrix};
+use bevy_rapier3d::na::{ArrayStorage, Const, Matrix};
 use bevy_rapier3d::prelude::*;
 
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
@@ -9,7 +9,6 @@ use crate::prefabs::node;
 
 pub struct Muscle {
     contracted_time: f32,
-    extended_time: f32,
     contracted_length: f32,
     extended_length: f32,
     strength: f32,
@@ -26,7 +25,6 @@ impl Muscle {
             strength: muscle_phenotype.strength,
             extended_length: muscle_phenotype.extended_length,
             contracted_length: muscle_phenotype.contracted_length,
-            extended_time: muscle_phenotype.extended_time,
             contracted_time: muscle_phenotype.contracted_time,
         }
     }
@@ -73,12 +71,7 @@ fn get_node_position(
     node: Entity,
     node_positions: &Query<&ColliderPosition, With<node::Node>>,
 ) -> ColumnMatrix {
-    node_positions
-        .get(node)
-        .unwrap()
-        .0
-        .translation
-        .vector
+    node_positions.get(node).unwrap().0.translation.vector
 }
 
 fn apply_forces(
@@ -105,7 +98,9 @@ fn apply_forces(
         let second_to_first_direction = -first_to_second_direction;
         let muscle_length = (second_node_position - first_node_position).norm();
 
-        let force = (1.0 - (muscle_length / target_length).sqrt()).max(-0.4).min(0.4);
+        let force = (1.0 - (muscle_length / target_length).sqrt())
+            .max(-0.4)
+            .min(0.4);
 
         let first_node_friction = nodes.get(muscle.nodes.0).unwrap().friction;
         let second_node_friction = nodes.get(muscle.nodes.1).unwrap().friction;
@@ -114,11 +109,12 @@ fn apply_forces(
         let second_node_strength = muscle.strength * (1.0 / second_node_friction);
 
         let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
-        first_node_velocity.linvel += second_to_first_direction * force * first_node_strength * time.delta_seconds();
+        first_node_velocity.linvel +=
+            second_to_first_direction * force * first_node_strength * time.delta_seconds();
 
         let mut second_node_velocity = node_velocities.get_mut(muscle.nodes.1).unwrap();
-        second_node_velocity.linvel += first_to_second_direction * force * second_node_strength * time.delta_seconds();
-
+        second_node_velocity.linvel +=
+            first_to_second_direction * force * second_node_strength * time.delta_seconds();
     }
 
     // TODO: Make this 10.0 a constant or a variable that's different for each creature

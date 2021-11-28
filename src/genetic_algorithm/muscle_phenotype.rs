@@ -6,8 +6,6 @@ use super::{
 /// Represents the characteristics of a Muscle
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct MusclePhenotype {
-    /// Time the muscle is extending
-    pub extended_time: f32,
     /// Time the muscle is contracting
     pub contracted_time: f32,
     /// Maximum length the muscle can reach
@@ -20,12 +18,10 @@ pub struct MusclePhenotype {
     pub nodes: (usize, usize),
 }
 
-const MAX_EXTENDED_TIME: f32 = 1.0;
 const MAX_CONTRACTED_TIME: f32 = 1.0;
 const MAX_EXTENDED_LENGTH: f32 = 1.0;
 const MAX_CONTRACTED_LENGTH: f32 = 1.0;
 const MAX_STRENGTH: f32 = 1.0;
-const MIN_EXTENDED_TIME: f32 = 0.0;
 const MIN_CONTRACTED_TIME: f32 = 0.0;
 const MIN_EXTENDED_LENGTH: f32 = 0.0;
 const MIN_CONTRACTED_LENGTH: f32 = 0.0;
@@ -35,11 +31,6 @@ impl Crossable for MusclePhenotype {
     /// Crosses two MusclePhenotypes. Verify that nodes are present in both parents
     fn cross(&self, other: &Self) -> Self {
         MusclePhenotype {
-            extended_time: if rand::random() {
-                self.extended_time
-            } else {
-                other.extended_time
-            },
             contracted_time: if rand::random() {
                 self.contracted_time
             } else {
@@ -72,16 +63,11 @@ impl Crossable for MusclePhenotype {
 impl Mutable for MusclePhenotype {
     /// Mutates a MusclePhenotype
     fn mutate(&self, mutation_rate: f32) -> Self {
-        let mut extended_time = self.extended_time;
         let mut contracted_time = self.contracted_time;
         let mut extended_length = self.extended_length;
         let mut contracted_length = self.contracted_length;
         let mut strength = self.strength;
 
-        if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
-            extended_time = extended_time + (rand::random::<f32>() - 0.5) * mutation_rate;
-            extended_time = extended_time.max(MIN_EXTENDED_TIME).min(MAX_EXTENDED_TIME);
-        }
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
             contracted_time = contracted_time + (rand::random::<f32>() - 0.5) * mutation_rate;
             contracted_time = contracted_time
@@ -109,7 +95,6 @@ impl Mutable for MusclePhenotype {
         }
 
         MusclePhenotype {
-            extended_time,
             contracted_time,
             extended_length,
             contracted_length,
@@ -122,7 +107,6 @@ impl Mutable for MusclePhenotype {
 impl RandomCreatable for MusclePhenotype {
     fn random() -> Self {
         MusclePhenotype {
-            extended_time: rand::random::<f32>(),
             contracted_time: rand::random::<f32>(),
             extended_length: rand::random::<f32>(),
             contracted_length: rand::random::<f32>(),
