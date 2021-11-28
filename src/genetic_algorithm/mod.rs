@@ -1,4 +1,6 @@
-pub mod runner;
+pub mod constants;
+pub mod creature_chromosome;
 pub mod muscle_phenotype;
 pub mod node_phenotype;
-pub mod creature_chromosome;
+pub mod operations;
+pub mod runner;

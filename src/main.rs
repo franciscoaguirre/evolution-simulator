@@ -37,7 +37,6 @@ fn setup(
         },
     ];
     let muscles = vec![muscle_phenotype::MusclePhenotype {
-        extended_time: 5.0,
         contracted_time: 5.0,
         contracted_length: 13.0,
         extended_length: 15.0,
