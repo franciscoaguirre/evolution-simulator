@@ -3,6 +3,7 @@ use rand::Rng;
 use crate::genetic_algorithm::*;
 
 use super::{
+    constants::ELIMINATION_MUTATION_CHANCE,
     muscle_phenotype::MusclePhenotype,
     node_phenotype::NodePhenotype,
     operations::{Breedable, Crossable, Mutable},
@@ -58,7 +59,7 @@ impl Mutable for CreatureChromosome {
         let node_index_remove: usize = rand::thread_rng().gen_range(0, nodes.len());
         let muscle_index_remove: usize = rand::thread_rng().gen_range(0, muscles.len());
 
-        if rand::random() {
+        if rand::random::<f32>() > ELIMINATION_MUTATION_CHANCE {
             nodes.remove(node_index_remove);
         }
         if rand::random() {

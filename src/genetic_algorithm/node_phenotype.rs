@@ -1,4 +1,7 @@
-use super::operations::{Crossable, Mutable};
+use super::{
+    constants::{POSITION_MUTATION_CHANCE, SINGLE_VALUE_MUTATION_CHANCE},
+    operations::{Crossable, Mutable},
+};
 use bevy::prelude::*;
 
 /// Represents the characteristics of a Node
@@ -25,13 +28,18 @@ impl Crossable for NodePhenotype {
 impl Mutable for NodePhenotype {
     fn mutate(&self, mutation_rate: f32) -> Self {
         let mut position = self.position.clone();
-        position.x += (rand::random::<f32>() - 0.5) * mutation_rate;
-        position.y += (rand::random::<f32>() - 0.5) * mutation_rate;
-        position.z += (rand::random::<f32>() - 0.5) * mutation_rate;
+        let mut friction = self.friction;
 
-        NodePhenotype {
-            position,
-            friction: self.friction + (rand::random::<f32>() - 0.5) * mutation_rate,
+        if rand::random::<f32>() > POSITION_MUTATION_CHANCE {
+            position.x += (rand::random::<f32>() - 0.5) * mutation_rate;
+            position.y += (rand::random::<f32>() - 0.5) * mutation_rate;
+            position.z += (rand::random::<f32>() - 0.5) * mutation_rate;
         }
+
+        if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
+            friction += (rand::random::<f32>() - 0.5) * mutation_rate;
+        }
+
+        NodePhenotype { position, friction }
     }
 }

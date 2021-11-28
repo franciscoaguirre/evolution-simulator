@@ -1,4 +1,7 @@
-use super::operations::{Crossable, Mutable};
+use super::{
+    constants::SINGLE_VALUE_MUTATION_CHANCE,
+    operations::{Crossable, Mutable},
+};
 
 /// Represents the characteristics of a Muscle
 pub struct MusclePhenotype {
@@ -15,6 +18,17 @@ pub struct MusclePhenotype {
     /// The nodes this muscle pulls/pushes
     pub nodes: (usize, usize),
 }
+
+const MAX_EXTENDED_TIME: f32 = 1.0;
+const MAX_CONTRACTED_TIME: f32 = 1.0;
+const MAX_EXTENDED_LENGTH: f32 = 1.0;
+const MAX_CONTRACTED_LENGTH: f32 = 1.0;
+const MAX_STRENGTH: f32 = 1.0;
+const MIN_EXTENDED_TIME: f32 = 0.0;
+const MIN_CONTRACTED_TIME: f32 = 0.0;
+const MIN_EXTENDED_LENGTH: f32 = 0.0;
+const MIN_CONTRACTED_LENGTH: f32 = 0.0;
+const MIN_STRENGTH: f32 = 0.0;
 
 impl Crossable for MusclePhenotype {
     /// Crosses two MusclePhenotypes. Verify that nodes are present in both parents
@@ -57,13 +71,48 @@ impl Crossable for MusclePhenotype {
 impl Mutable for MusclePhenotype {
     /// Mutates a MusclePhenotype
     fn mutate(&self, mutation_rate: f32) -> Self {
+        let mut extended_time = self.extended_time;
+        let mut contracted_time = self.contracted_time;
+        let mut extended_length = self.extended_length;
+        let mut contracted_length = self.contracted_length;
+        let mut strength = self.strength;
+
+        if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
+            extended_time = extended_time + (rand::random::<f32>() - 0.5) * mutation_rate;
+            extended_time = extended_time.min(MIN_EXTENDED_TIME).max(MAX_EXTENDED_TIME);
+        }
+        if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
+            contracted_time = contracted_time + (rand::random::<f32>() - 0.5) * mutation_rate;
+            contracted_time = contracted_time
+                .min(MIN_CONTRACTED_TIME)
+                .max(MAX_CONTRACTED_TIME);
+        }
+        if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
+            extended_length = extended_length + (rand::random::<f32>() - 0.5) * mutation_rate;
+            extended_length = extended_length
+                .min(MIN_EXTENDED_LENGTH)
+                .max(MAX_EXTENDED_LENGTH);
+        }
+        if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
+            contracted_length = contracted_length + (rand::random::<f32>() - 0.5) * mutation_rate;
+            contracted_length = contracted_length
+                .min(MIN_CONTRACTED_LENGTH)
+                .max(MAX_CONTRACTED_LENGTH)
+                .max(extended_length);
+
+            extended_length = extended_length.min(contracted_length);
+        }
+        if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
+            strength = strength + (rand::random::<f32>() - 0.5) * mutation_rate;
+            strength = strength.min(MIN_STRENGTH).max(MAX_STRENGTH);
+        }
+
         MusclePhenotype {
-            extended_time: self.extended_time + (rand::random::<f32>() - 0.5) * mutation_rate,
-            contracted_time: self.contracted_time + (rand::random::<f32>() - 0.5) * mutation_rate,
-            extended_length: self.extended_length + (rand::random::<f32>() - 0.5) * mutation_rate,
-            contracted_length: self.contracted_length
-                + (rand::random::<f32>() - 0.5) * mutation_rate,
-            strength: self.strength + (rand::random::<f32>() - 0.5) * mutation_rate,
+            extended_time,
+            contracted_time,
+            extended_length,
+            contracted_length,
+            strength,
             nodes: self.nodes,
         }
     }
