@@ -4,7 +4,7 @@ use super::{
 };
 
 /// Represents the characteristics of a Muscle
-#[derive(Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct MusclePhenotype {
     /// Time the muscle is extending
     pub extended_time: f32,

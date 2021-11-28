@@ -9,7 +9,7 @@ use super::{
     operations::{Breedable, Correctable, Crossable, Mutable},
 };
 
-#[derive(Default)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct CreatureChromosome {
     pub nodes: Vec<node_phenotype::NodePhenotype>,
     pub muscles: Vec<muscle_phenotype::MusclePhenotype>,
@@ -62,16 +62,16 @@ impl CreatureChromosome {
     /// Connects dangling nodes to the nearest present node
     fn fix_danging_nodes(&mut self) {
         let mut visited: Vec<usize> = Vec::new();
-        let mut component_index: Vec<usize> = vec![0; self.nodes.len()];
+        let mut graph_components: Vec<usize> = vec![0; self.nodes.len()];
 
         for (i, _) in self.nodes.iter().enumerate() {
             // Tags all nodes with convex component
-            self.tag_component(0, &mut visited, &mut component_index, i);
+            self.tag_graph_components(0, &mut visited, &mut graph_components, i);
         }
 
         // Clear visited and add only nodes for first component
         visited.clear();
-        self.tag_component(0, &mut visited, &mut component_index, 0);
+        self.tag_graph_components(0, &mut visited, &mut graph_components, 0);
 
         for i in 0..self.nodes.len() {
             if visited.contains(&i) {
@@ -81,14 +81,14 @@ impl CreatureChromosome {
             let connection = self.connect_to_closest(i, &mut visited);
 
             // Assign new component to every element inside the same component of the graph
-            for (node_index, component) in component_index.clone().iter().enumerate() {
-                if *component == component_index[i] {
+            for (node_index, component) in graph_components.clone().iter().enumerate() {
+                if *component == graph_components[i] {
                     visited.push(node_index);
-                    component_index[node_index] = component_index[connection];
+                    graph_components[node_index] = graph_components[connection];
                 }
             }
 
-            component_index[i] = connection;
+            graph_components[i] = connection;
         }
     }
 
@@ -101,7 +101,7 @@ impl CreatureChromosome {
     /// * `component_index` - Index of the component
     /// * `component` - Number of current component being tagged with
     ///
-    fn tag_component(
+    fn tag_graph_components(
         &self,
         node_index: usize,
         visited: &mut Vec<usize>,
@@ -117,9 +117,9 @@ impl CreatureChromosome {
 
         for muscle in self.muscles.iter() {
             if muscle.nodes.0 == node_index {
-                self.tag_component(muscle.nodes.1, visited, component_index, component);
+                self.tag_graph_components(muscle.nodes.1, visited, component_index, component);
             } else if muscle.nodes.1 == node_index {
-                self.tag_component(muscle.nodes.0, visited, component_index, component);
+                self.tag_graph_components(muscle.nodes.0, visited, component_index, component);
             }
         }
     }
@@ -221,5 +221,80 @@ impl Correctable for CreatureChromosome {
     fn correct(&mut self) {
         self.fix_muscles_node_references();
         self.fix_danging_nodes();
+    }
+
+    fn is_correct(&self) -> bool {
+        let mut graph_components = vec![0; self.nodes.len()];
+        self.tag_graph_components(0, &mut Vec::new(), &mut graph_components, 1);
+
+        graph_components.iter().all(|&component| component == 1)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_correct_for_correct_creature() {
+        let nodes = vec![
+            NodePhenotype {
+                ..Default::default()
+            },
+            NodePhenotype {
+                ..Default::default()
+            },
+            NodePhenotype {
+                ..Default::default()
+            },
+        ];
+
+        let muscles = vec![
+            MusclePhenotype {
+                nodes: (0, 1),
+                ..Default::default()
+            },
+            MusclePhenotype {
+                nodes: (1, 2),
+                ..Default::default()
+            },
+        ];
+
+        let mut creature_chromosome = CreatureChromosome { nodes, muscles };
+        let creature_chromosome_before_correct = creature_chromosome.clone();
+        creature_chromosome.correct();
+        assert_eq!(creature_chromosome, creature_chromosome_before_correct);
+    }
+
+    #[test]
+    fn test_fixes_nodes_for_muscles() {
+        let nodes = vec![
+            NodePhenotype {
+                ..Default::default()
+            },
+            NodePhenotype {
+                ..Default::default()
+            },
+            NodePhenotype {
+                ..Default::default()
+            },
+        ];
+
+        let muscles = vec![
+            MusclePhenotype {
+                nodes: (0, 1),
+                ..Default::default()
+            },
+            MusclePhenotype {
+                nodes: (1, 1),
+                ..Default::default()
+            },
+        ];
+
+        let mut creature_chromosome = CreatureChromosome { nodes, muscles };
+
+        assert_eq!(creature_chromosome.is_correct(), false);
+        creature_chromosome.correct();
+        assert_eq!(creature_chromosome.is_correct(), true);
     }
 }

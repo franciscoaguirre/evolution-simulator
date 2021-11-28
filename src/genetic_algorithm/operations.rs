@@ -21,4 +21,7 @@ pub trait Correctable {
     /// This is used to correct the object after a mutation
     /// to avoid the object to be out of bounds
     fn correct(&mut self);
+
+    /// Checks if the object is correct
+    fn is_correct(&self) -> bool;
 }
