@@ -1,6 +1,7 @@
 use bevy::core::Stopwatch;
 use bevy::prelude::*;
 use bevy_prototype_debug_lines::*;
+use bevy_rapier3d::na::{ArrayStorage, ComplexField, Const, Matrix};
 use bevy_rapier3d::prelude::*;
 
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
@@ -46,6 +47,7 @@ pub struct MusclePlugin;
 impl Plugin for MusclePlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.insert_resource(Stopwatch::new())
+            .insert_resource(Timer::from_seconds(2.0, false))
             .add_plugin(DebugLinesPlugin)
             .add_system(draw_muscles.system())
             .add_system(apply_forces.system());
@@ -64,57 +66,63 @@ fn draw_muscles(
     }
 }
 
+type ColumnMatrix =
+    Matrix<f32, Const<3_usize>, Const<1_usize>, ArrayStorage<f32, 3_usize, 1_usize>>;
+
+fn get_node_position(
+    node: Entity,
+    node_positions: &Query<&ColliderPosition, With<node::Node>>,
+) -> ColumnMatrix {
+    node_positions
+        .get(node)
+        .unwrap()
+        .0
+        .translation
+        .vector
+}
+
 fn apply_forces(
     time: Res<Time>,
     mut stopwatch: ResMut<Stopwatch>,
     muscles: Query<&Muscle>,
     nodes: Query<&node::Node>,
-    node_positions: Query<&RigidBodyPosition, With<node::Node>>,
+    node_positions: Query<&ColliderPosition, With<node::Node>>,
     mut node_velocities: Query<&mut RigidBodyVelocity, With<node::Node>>,
 ) {
     stopwatch.tick(time.delta());
 
     for muscle in muscles.iter() {
         let should_contract = stopwatch.elapsed_secs() <= muscle.contracted_time;
-        let first_node_position = node_positions
-            .get(muscle.nodes.0)
-            .unwrap()
-            .position
-            .translation
-            .vector;
-        let second_node_position = node_positions
-            .get(muscle.nodes.1)
-            .unwrap()
-            .position
-            .translation
-            .vector;
+        let target_length = if should_contract {
+            muscle.contracted_length
+        } else {
+            muscle.extended_length
+        };
+
+        let first_node_position = get_node_position(muscle.nodes.0, &node_positions);
+        let second_node_position = get_node_position(muscle.nodes.1, &node_positions);
         let first_to_second_direction = (second_node_position - first_node_position).normalize();
-        let second_to_first_direction = (first_node_position - second_node_position).normalize();
+        let second_to_first_direction = -first_to_second_direction;
         let muscle_length = (second_node_position - first_node_position).norm();
+
+        let force = (1.0 - (muscle_length / target_length).sqrt()).max(-0.4).min(0.4);
 
         let first_node_friction = nodes.get(muscle.nodes.0).unwrap().friction;
         let second_node_friction = nodes.get(muscle.nodes.1).unwrap().friction;
 
+        let first_node_strength = muscle.strength * (1.0 / first_node_friction);
+        let second_node_strength = muscle.strength * (1.0 / second_node_friction);
+
         let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
-        if should_contract && muscle_length > muscle.contracted_length {
-            first_node_velocity.linvel = first_to_second_direction * muscle.strength * (1.0 / first_node_friction);
-        } else if !should_contract && muscle_length < muscle.extended_length {
-            first_node_velocity.linvel = second_to_first_direction * muscle.strength * (1.0 / first_node_friction);
-        } else {
-            first_node_velocity.linvel = Vec3::ZERO.into();
-        }
+        first_node_velocity.linvel += second_to_first_direction * force * first_node_strength * time.delta_seconds();
 
         let mut second_node_velocity = node_velocities.get_mut(muscle.nodes.1).unwrap();
-        if should_contract && muscle_length > muscle.contracted_length {
-            second_node_velocity.linvel = second_to_first_direction * muscle.strength * (1.0 / second_node_friction);
-        } else if !should_contract && muscle_length < muscle.extended_length {
-            second_node_velocity.linvel = first_to_second_direction * muscle.strength * (1.0 / second_node_friction);
-        } else {
-            second_node_velocity.linvel = Vec3::ZERO.into();
-        }
+        second_node_velocity.linvel += first_to_second_direction * force * second_node_strength * time.delta_seconds();
+
     }
 
-    if stopwatch.elapsed_secs() >= 1.0 {
+    // TODO: Make this 10.0 a constant or a variable that's different for each creature
+    if stopwatch.elapsed_secs() >= 10.0 {
         stopwatch.reset();
     }
 }
