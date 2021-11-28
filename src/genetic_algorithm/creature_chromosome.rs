@@ -129,32 +129,34 @@ impl CreatureChromosome {
     /// # Arguments
     ///
     /// * `node_index` - Index of the node to be connected
-    /// * `visited` - Vector of visited nodes
+    /// * `visited` - Vector of connected nodes' index
     ///
-    fn connect_to_closest(&mut self, node_index: usize, visited: &mut Vec<usize>) -> usize {
+    fn connect_to_closest(&mut self, node_index: usize, connected: &mut Vec<usize>) -> usize {
         let node = &self.nodes[node_index];
         let mut closest_node_index = 0;
-        let mut closest_node_distance = std::f32::MAX;
+        let mut closest_node_distance = f32::MAX;
 
-        for other_node in visited.iter() {
+        for other_node in connected.iter() {
             if *other_node == node_index {
                 continue;
             }
 
             let distance = node.position.distance(self.nodes[*other_node].position);
 
-            if distance < closest_node_distance {
-                closest_node_distance = distance;
-                closest_node_index = *other_node;
+            if distance >= closest_node_distance {
+                continue;
             }
+
+            closest_node_distance = distance;
+            closest_node_index = *other_node;
         }
 
-        let muscle = self.muscles.last().unwrap().clone();
+        let mut muscle = self.muscles.last().unwrap().clone();
         muscle.nodes.0 = node_index;
         muscle.nodes.1 = closest_node_index;
 
-        visited.push(node_index);
-        self.muscles.push(*muscle);
+        connected.push(node_index);
+        self.muscles.push(muscle);
 
         closest_node_index
     }

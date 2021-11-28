@@ -5,6 +5,7 @@ use super::{
 use bevy::prelude::*;
 
 /// Represents the characteristics of a Node
+#[derive(Clone, Copy)]
 pub struct NodePhenotype {
     /// Initial node position in creature
     pub position: Vec3,
