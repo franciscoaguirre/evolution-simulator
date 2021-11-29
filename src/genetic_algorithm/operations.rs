@@ -31,4 +31,4 @@ pub trait RandomCreatable {
     fn random() -> Self;
 }
 
-pub trait Individual: Breedable + Mutable + Correctable + RandomCreatable + Clone {}
+pub trait Individual: Breedable + Mutable + Correctable + RandomCreatable + Copy + Clone {}
