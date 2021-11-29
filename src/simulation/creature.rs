@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use crate::genetic_algorithm::creature_chromosome::CreatureChromosome;
 
-use crate::prefabs::muscle;
-use crate::prefabs::node;
+use super::muscle;
+use super::node;
 
 pub struct Creature;
 

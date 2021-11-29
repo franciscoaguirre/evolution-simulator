@@ -6,11 +6,14 @@ use super::{
     constants::ELIMINATION_MUTATION_CHANCE,
     muscle_phenotype::MusclePhenotype,
     node_phenotype::NodePhenotype,
-    operations::{Breedable, Correctable, Crossable, Mutable, RandomCreatable},
+    operations::{
+        Breedable, Correctable, Crossable, Evaluatable, Individual, Mutable, RandomCreatable,
+    },
 };
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct CreatureChromosome {
+    pub fitness: f32,
     pub nodes: Vec<node_phenotype::NodePhenotype>,
     pub muscles: Vec<muscle_phenotype::MusclePhenotype>,
 }
@@ -177,6 +180,7 @@ impl Crossable for CreatureChromosome {
                 .zip(other.muscles.iter())
                 .map(|(a, b)| a.cross(b))
                 .collect(),
+            ..Default::default()
         }
     }
 }
@@ -213,7 +217,11 @@ impl Mutable for CreatureChromosome {
             muscles.remove(muscle_index_remove);
         }
 
-        CreatureChromosome { nodes, muscles }
+        CreatureChromosome {
+            nodes,
+            muscles,
+            ..Default::default()
+        }
     }
 }
 
@@ -240,13 +248,25 @@ impl RandomCreatable for CreatureChromosome {
             .map(|_| MusclePhenotype::random())
             .collect();
 
-        let mut creature = CreatureChromosome { nodes, muscles };
+        let mut creature = CreatureChromosome {
+            nodes,
+            muscles,
+            ..Default::default()
+        };
 
         creature.correct();
 
         creature
     }
 }
+
+impl Evaluatable for CreatureChromosome {
+    fn get_fitness(&self) -> f32 {
+        self.fitness
+    }
+}
+
+impl Individual for CreatureChromosome {}
 
 #[cfg(test)]
 mod tests {
@@ -277,7 +297,11 @@ mod tests {
             },
         ];
 
-        let mut creature_chromosome = CreatureChromosome { nodes, muscles };
+        let mut creature_chromosome = CreatureChromosome {
+            nodes,
+            muscles,
+            ..Default::default()
+        };
         let creature_chromosome_before_correct = creature_chromosome.clone();
         creature_chromosome.correct();
         assert_eq!(creature_chromosome, creature_chromosome_before_correct);
@@ -308,7 +332,11 @@ mod tests {
             },
         ];
 
-        let mut creature_chromosome = CreatureChromosome { nodes, muscles };
+        let mut creature_chromosome = CreatureChromosome {
+            nodes,
+            muscles,
+            ..Default::default()
+        };
 
         assert_eq!(creature_chromosome.is_correct(), false);
         creature_chromosome.correct();

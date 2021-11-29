@@ -31,4 +31,12 @@ pub trait RandomCreatable {
     fn random() -> Self;
 }
 
-pub trait Individual: Breedable + Mutable + Correctable + RandomCreatable + Copy + Clone {}
+pub trait Evaluatable {
+    /// Gets fitness value from evaluation
+    fn get_fitness(&self) -> f32;
+}
+
+pub trait Individual:
+    Breedable + Mutable + Correctable + RandomCreatable + Evaluatable + Clone
+{
+}

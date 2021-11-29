@@ -5,7 +5,7 @@ use bevy_rapier3d::na::{ArrayStorage, Const, Matrix};
 use bevy_rapier3d::prelude::*;
 
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
-use crate::prefabs::node;
+use super::node;
 
 pub struct Muscle {
     contracted_time: f32,
