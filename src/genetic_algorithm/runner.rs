@@ -1,4 +1,4 @@
-use super::{operations::Individual, creature_chromosome::CreatureChromosome, plugin::POPULATION_SIZE};
+use super::{operations::Individual, plugin::POPULATION_SIZE};
 
 #[derive(Default)]
 pub struct Algorithm<T: Individual> {
@@ -20,7 +20,8 @@ impl<T: Individual> Algorithm<T> {
 
     /// Select the parents for the next generation
     pub fn selection(&mut self) {
-        self.population.sort_by(|a, b| b.get_fitness().partial_cmp(&a.get_fitness()).unwrap());
+        self.population
+            .sort_by(|a, b| b.get_fitness().partial_cmp(&a.get_fitness()).unwrap());
     }
 
     /// Takes the best parents and creates a new population

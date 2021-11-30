@@ -5,7 +5,10 @@ use crate::genetic_algorithm::creature_chromosome::CreatureChromosome;
 use super::muscle;
 use super::node;
 
-pub struct Creature;
+pub struct Creature {
+    pub chromosome: CreatureChromosome,
+    pub starting_position: Vec3,
+}
 
 pub fn create_creature(
     commands: &mut Commands,
@@ -16,14 +19,20 @@ pub fn create_creature(
 ) {
     let mut nodes: Vec<Entity> = vec![];
 
-    commands.spawn().insert(Creature).with_children(|parent| {
-        for node in creature_chromosome.nodes.iter() {
-            let entity = node::create_node(parent, meshes, materials, &node, position);
-            nodes.push(entity)
-        }
+    commands
+        .spawn()
+        .insert(Creature {
+            chromosome: creature_chromosome.clone(),
+            starting_position: position,
+        })
+        .with_children(|parent| {
+            for node in creature_chromosome.nodes.iter() {
+                let entity = node::create_node(parent, meshes, materials, &node, position);
+                nodes.push(entity)
+            }
 
-        for muscle in creature_chromosome.muscles.iter() {
-            muscle::create_muscle(parent, &muscle, &nodes);
-        }
-    });
+            for muscle in creature_chromosome.muscles.iter() {
+                muscle::create_muscle(parent, &muscle, &nodes);
+            }
+        });
 }
