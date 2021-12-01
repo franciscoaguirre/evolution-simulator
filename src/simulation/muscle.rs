@@ -98,7 +98,7 @@ fn apply_forces(
         let second_to_first_direction = -first_to_second_direction;
         let muscle_length = (second_node_position - first_node_position).norm();
 
-        let force = (1.0 - (muscle_length / target_length).sqrt())
+        let force = (1.0 - (muscle_length / target_length).powf(2.0))
             .max(-0.4)
             .min(0.4);
 

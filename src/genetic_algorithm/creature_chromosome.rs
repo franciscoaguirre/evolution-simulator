@@ -40,19 +40,19 @@ impl CreatureChromosome {
             let (node1, node2) = muscle.nodes;
             if (node1 as usize) >= self.nodes.len() {
                 let mut rng = rand::thread_rng();
-                muscle.nodes.0 = rng.gen_range(0, self.nodes.len());
+                muscle.nodes.0 = rng.gen_range(0..self.nodes.len());
             }
 
             if (node2 as usize) >= self.nodes.len() {
                 let mut rng = rand::thread_rng();
-                muscle.nodes.1 = rng.gen_range(0, self.nodes.len());
+                muscle.nodes.1 = rng.gen_range(0..self.nodes.len());
             }
 
             if node1 == node2 {
                 let mut rng = rand::thread_rng();
 
                 loop {
-                    let node = rng.gen_range(0, self.nodes.len());
+                    let node = rng.gen_range(0..self.nodes.len());
                     if node != node1 {
                         muscle.nodes.1 = node;
                         break;
@@ -207,8 +207,8 @@ impl Mutable for CreatureChromosome {
             .map(|muscle| muscle.mutate(mutation_rate))
             .collect();
 
-        let node_index_remove: usize = rand::thread_rng().gen_range(0, nodes.len());
-        let muscle_index_remove: usize = rand::thread_rng().gen_range(0, muscles.len());
+        let node_index_remove: usize = rand::thread_rng().gen_range(0..nodes.len());
+        let muscle_index_remove: usize = rand::thread_rng().gen_range(0..muscles.len());
 
         if rand::random::<f32>() > ELIMINATION_MUTATION_CHANCE {
             nodes.remove(node_index_remove);
@@ -241,10 +241,10 @@ impl Correctable for CreatureChromosome {
 
 impl RandomCreatable for CreatureChromosome {
     fn random() -> Self {
-        let nodes: Vec<NodePhenotype> = (2..rand::random::<usize>())
+        let nodes: Vec<NodePhenotype> = (2..10)
             .map(|_| NodePhenotype::random())
             .collect();
-        let muscles: Vec<MusclePhenotype> = (1..rand::random::<usize>())
+        let muscles: Vec<MusclePhenotype> = (1..10)
             .map(|_| MusclePhenotype::random())
             .collect();
 

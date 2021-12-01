@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use super::{creature_chromosome::CreatureChromosome, runner::Algorithm};
 
-pub const POPULATION_SIZE: usize = 100;
+pub const POPULATION_SIZE: usize = 4;
 
 pub struct GeneticAlgorithmPlugin;
 
@@ -36,7 +36,6 @@ fn setup_genetic_algorithm(
     mut start_evaluating_events: EventWriter<StartEvaluatingEvent>,
 ) {
     ga.initialize_population(POPULATION_SIZE);
-    ga.selection();
     ga.reproduction();
     for chromosome in ga.population.iter().chain(ga.offspring_population.iter()) {
         start_evaluating_events.send(StartEvaluatingEvent {
@@ -66,7 +65,6 @@ fn count_finished_evaluating(
     mut ga: ResMut<CreatureGA>,
 ) {
     for event in finished_evaluating_events.iter() {
-        println!("{:?}", event.chromosome);
         ga.finished_evaluating(event.chromosome.clone());
     }
 }

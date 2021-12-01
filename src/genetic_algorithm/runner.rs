@@ -22,6 +22,8 @@ impl<T: Individual> Algorithm<T> {
     pub fn selection(&mut self) {
         self.population
             .sort_by(|a, b| b.get_fitness().partial_cmp(&a.get_fitness()).unwrap());
+
+        self.population = self.population[0..POPULATION_SIZE].to_vec();
     }
 
     /// Takes the best parents and creates a new population
@@ -34,6 +36,9 @@ impl<T: Individual> Algorithm<T> {
 
             first_child = first_child.mutate(1.0);
             second_child = second_child.mutate(1.0);
+
+            first_child.correct();
+            second_child.correct();
 
             offspring_population.push(first_child);
             offspring_population.push(second_child);
@@ -53,6 +58,6 @@ impl<T: Individual> Algorithm<T> {
     }
 
     pub fn all_have_finished_evaluating(&self) -> bool {
-        self.new_population.len() == POPULATION_SIZE
+        self.new_population.len() == POPULATION_SIZE * 2
     }
 }

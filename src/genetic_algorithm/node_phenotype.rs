@@ -38,7 +38,7 @@ impl Mutable for NodePhenotype {
         }
 
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
-            friction += (rand::random::<f32>() - 0.5) * mutation_rate;
+            friction += (rand::random::<f32>() + 0.1) * mutation_rate;
         }
 
         NodePhenotype { position, friction }
@@ -49,11 +49,11 @@ impl RandomCreatable for NodePhenotype {
     fn random() -> Self {
         NodePhenotype {
             position: Vec3::new(
-                rand::random::<f32>() * 2.0 - 1.0,
-                rand::random::<f32>() * 2.0 - 1.0,
-                rand::random::<f32>() * 2.0 - 1.0,
+                (rand::random::<f32>() * 2.0 - 1.0) * 10.0,
+                (rand::random::<f32>() + 0.5 * 2.0) * 10.0,
+                (rand::random::<f32>() * 2.0 - 1.0) * 10.0,
             ),
-            friction: rand::random::<f32>() * 2.0 - 1.0,
+            friction: rand::random::<f32>() * 2.0,
         }
     }
 }

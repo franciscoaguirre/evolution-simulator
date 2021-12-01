@@ -8,6 +8,10 @@ pub fn create_plane(
 ) {
     let collider = ColliderBundle {
         shape: ColliderShape::cuboid(100.0, 0.1, 100.0),
+        flags: ColliderFlags {
+            collision_groups: InteractionGroups::new(0b01, 0b11),
+            ..Default::default()
+        },
         ..Default::default()
     };
     commands
