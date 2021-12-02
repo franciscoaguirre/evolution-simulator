@@ -4,8 +4,8 @@ use bevy_prototype_debug_lines::*;
 use bevy_rapier3d::na::{ArrayStorage, Const, Matrix};
 use bevy_rapier3d::prelude::*;
 
-use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
 use super::node;
+use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
 
 pub struct Muscle {
     contracted_time: f32,
@@ -94,7 +94,12 @@ fn apply_forces(
 
         let first_node_position = get_node_position(muscle.nodes.0, &node_positions);
         let second_node_position = get_node_position(muscle.nodes.1, &node_positions);
-        let first_to_second_direction = (second_node_position - first_node_position).normalize();
+        let mut first_to_second_direction = (second_node_position - first_node_position).normalize();
+
+        if first_node_position == second_node_position {
+            first_to_second_direction = Vec3::new(0.0, 0.0, 1.0).into();
+        }
+
         let second_to_first_direction = -first_to_second_direction;
         let muscle_length = (second_node_position - first_node_position).norm();
 
@@ -118,7 +123,7 @@ fn apply_forces(
     }
 
     // TODO: Make this 10.0 a constant or a variable that's different for each creature
-    if stopwatch.elapsed_secs() >= 10.0 {
+    if stopwatch.elapsed_secs() >= 1.0 {
         stopwatch.reset();
     }
 }
