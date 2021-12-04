@@ -90,10 +90,31 @@ fn setup_timer_text(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(TimerText);
 }
 
-fn update_timer_text(stopwatch: Res<EvaluationStopwatch>, mut query: Query<&mut Text, With<TimerText>>) {
+fn update_timer_text(
+    stopwatch: Res<EvaluationStopwatch>,
+    mut query: Query<&mut Text, With<TimerText>>,
+) {
     for mut text in query.iter_mut() {
         text.sections[0].value = format!("{:.2}", stopwatch.0.elapsed_secs());
     }
+}
+
+/// Calculates creature's position averaging its nodes positions
+pub fn calculate_creatures_position(
+    entity: Entity,
+    collider_node_positions: &Query<(&ColliderPosition, &Parent), With<node::Node>>,
+) -> Vec3 {
+    let creature_node_count = collider_node_positions
+        .iter()
+        .filter(|(_, parent)| parent.0 == entity)
+        .count();
+    let positions_sum: Vec3 = collider_node_positions
+        .iter()
+        .filter(|(_, parent)| parent.0 == entity)
+        .fold(Vec3::ZERO, |sum, (collider_position, _)| {
+            sum + collider_position.0.translation.vector.into()
+        });
+    positions_sum / creature_node_count as f32
 }
 
 fn evaluate_simulation(
@@ -111,25 +132,13 @@ fn evaluate_simulation(
     }
 
     for (entity, mut creature) in creatures.iter_mut() {
-        let mut position = Vec3::default();
-        for (collider_position, parent) in collider_node_positions.iter() {
-            if parent.0 != entity {
-                continue;
-            }
-
-            position += collider_position.0.translation.vector.into();
-        }
-
-        position /= creature.chromosome.nodes.len() as f32;
-
+        let position = calculate_creatures_position(entity, &collider_node_positions);
         creature.chromosome.fitness = (creature.starting_position - position).length();
         finished_evaluating_events.send(FinishedEvaluatingEvent {
             chromosome: creature.chromosome.clone(),
         });
 
-        commands
-            .entity(entity)
-            .despawn_recursive();
+        commands.entity(entity).despawn_recursive();
     }
 
     stopwatch.0.pause();
