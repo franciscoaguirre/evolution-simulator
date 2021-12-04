@@ -3,7 +3,7 @@ use bevy_fly_camera::{FlyCamera, FlyCameraPlugin};
 use bevy_rapier3d::prelude::*;
 
 mod simulation;
-use simulation::{plane::create_plane, plugin::SimulationPlugin, logger::LoggerPlugin};
+use simulation::{plane::create_plane, plugin::SimulationPlugin};
 
 mod genetic_algorithm;
 use genetic_algorithm::plugin::GeneticAlgorithmPlugin;
@@ -37,7 +37,6 @@ fn main() {
         .add_plugin(RapierRenderPlugin)
         .add_plugin(SimulationPlugin)
         .add_plugin(GeneticAlgorithmPlugin)
-        .add_plugin(LoggerPlugin)
         .add_startup_system(setup.system())
         .run();
 }

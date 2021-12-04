@@ -1,4 +1,4 @@
-use bevy::{core::Stopwatch, prelude::*};
+use bevy::prelude::*;
 use bevy_rapier3d::prelude::ColliderPosition;
 
 use crate::genetic_algorithm::plugin::{
@@ -7,36 +7,35 @@ use crate::genetic_algorithm::plugin::{
 
 use super::{
     creature::{create_creature, Creature},
+    logger::LoggerPlugin,
     muscle::MusclePlugin,
     node,
+    resources::{EvaluationStopwatch, GenerationCount},
+    ui::UIPlugin,
 };
 
 const EVALUATION_TIME: f32 = 5.0;
 
-struct TimerText;
-
 pub struct SimulationPlugin;
-
-#[derive(Default)]
-struct EvaluationStopwatch(Stopwatch);
 
 #[derive(Default)]
 struct CreaturesCreated(usize);
 
 impl Plugin for SimulationPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(MusclePlugin)
+        app.add_plugin(UIPlugin)
+            .add_plugin(MusclePlugin)
+            .add_plugin(LoggerPlugin)
             .insert_resource(CreaturesCreated::default())
-            .insert_resource(Timer::from_seconds(2.0, false))
             .insert_resource(EvaluationStopwatch::default())
+            .insert_resource(GenerationCount::default())
             .add_system(simulate.system())
-            .add_system(evaluate_simulation.system())
-            .add_startup_system(setup_timer_text.system())
-            .add_system(update_timer_text.system());
+            .add_system(evaluate_simulation.system());
     }
 }
 
 fn simulate(
+    mut generation_count: ResMut<GenerationCount>,
     mut creatures_created: ResMut<CreaturesCreated>,
     mut commands: Commands,
     mut stopwatch: ResMut<EvaluationStopwatch>,
@@ -57,45 +56,10 @@ fn simulate(
     }
 
     if creatures_created.0 == POPULATION_SIZE * 2 {
-        println!("Resetting timer!");
         stopwatch.0.reset();
         stopwatch.0.unpause();
+        generation_count.0 += 1;
         creatures_created.0 = 0;
-    }
-}
-
-fn setup_timer_text(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(UiCameraBundle::default());
-    commands
-        .spawn_bundle(TextBundle {
-            style: Style {
-                align_self: AlignSelf::FlexStart,
-                ..Default::default()
-            },
-            text: Text::with_section(
-                "0.0",
-                TextStyle {
-                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                    font_size: 100.0,
-                    color: Color::WHITE,
-                    ..Default::default()
-                },
-                TextAlignment {
-                    vertical: VerticalAlign::Center,
-                    horizontal: HorizontalAlign::Center,
-                },
-            ),
-            ..Default::default()
-        })
-        .insert(TimerText);
-}
-
-fn update_timer_text(
-    stopwatch: Res<EvaluationStopwatch>,
-    mut query: Query<&mut Text, With<TimerText>>,
-) {
-    for mut text in query.iter_mut() {
-        text.sections[0].value = format!("{:.2}", stopwatch.0.elapsed_secs());
     }
 }
 
