@@ -1,7 +1,10 @@
 use std::fs::File;
 
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::{ColliderPosition, IntegrationParameters};
+use bevy_rapier3d::{
+    physics::RapierConfiguration,
+    prelude::{ColliderPosition, IntegrationParameters},
+};
 use ron::de::from_reader;
 
 use crate::genetic_algorithm::plugin::{
@@ -53,9 +56,14 @@ fn load_config_from_file() -> Result<Config, ron::error::Error> {
     Ok(config)
 }
 
-fn apply_config(config: Res<Config>, mut integration_parameters: ResMut<IntegrationParameters>) {
+fn apply_config(
+    config: Res<Config>,
+    mut integration_parameters: ResMut<IntegrationParameters>,
+    mut rapier_configuration: ResMut<RapierConfiguration>,
+) {
     let inv_dt = integration_parameters.inv_dt();
     integration_parameters.set_inv_dt(inv_dt / config.time_scale);
+    rapier_configuration.gravity = Vec3::new(0.0, -config.gravity, 0.0).into();
 }
 
 fn simulate(

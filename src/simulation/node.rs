@@ -20,7 +20,7 @@ pub fn create_node(
     };
     let collider = ColliderBundle {
         position: (node_phenotype.position + position_offset).into(),
-        shape: ColliderShape::ball(0.1),
+        shape: ColliderShape::ball(0.5),
         flags: ColliderFlags {
             collision_groups: InteractionGroups::new(0b10, 0b01),
             ..Default::default()
