@@ -1,4 +1,22 @@
 use bevy::core::Stopwatch;
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize)]
+pub struct Config {
+    pub evaluation_time: f32,
+    pub time_scale: f32,
+    pub gravity: f32,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            evaluation_time: 15.0,
+            time_scale: 1.0,
+            gravity: 9.8,
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct EvaluationStopwatch(pub Stopwatch);

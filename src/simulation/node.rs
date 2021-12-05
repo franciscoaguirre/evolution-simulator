@@ -30,7 +30,9 @@ pub fn create_node(
 
     parent
         .spawn()
-        .insert(Node { friction: node_phenotype.friction })
+        .insert(Node {
+            friction: node_phenotype.friction,
+        })
         .insert_bundle(rigid_body)
         .insert_bundle(collider)
         .insert_bundle(PbrBundle {

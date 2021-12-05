@@ -28,7 +28,7 @@ impl Crossable for NodePhenotype {
 
 impl Mutable for NodePhenotype {
     fn mutate(&self, mutation_rate: f32) -> Self {
-        let mut position = self.position.clone();
+        let mut position = self.position;
         let mut friction = self.friction;
 
         if rand::random::<f32>() > POSITION_MUTATION_CHANCE {
