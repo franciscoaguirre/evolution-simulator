@@ -20,7 +20,7 @@ pub fn create_node(
     };
     let collider = ColliderBundle {
         position: (node_phenotype.position + position_offset).into(),
-        shape: ColliderShape::ball(0.5),
+        shape: ColliderShape::ball(0.1),
         flags: ColliderFlags {
             collision_groups: InteractionGroups::new(0b10, 0b01),
             ..Default::default()
@@ -30,7 +30,9 @@ pub fn create_node(
 
     parent
         .spawn()
-        .insert(Node { friction: node_phenotype.friction })
+        .insert(Node {
+            friction: node_phenotype.friction,
+        })
         .insert_bundle(rigid_body)
         .insert_bundle(collider)
         .insert_bundle(PbrBundle {

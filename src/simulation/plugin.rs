@@ -1,5 +1,8 @@
+use std::fs::File;
+
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::ColliderPosition;
+use bevy_rapier3d::prelude::{ColliderPosition, IntegrationParameters};
+use ron::de::from_reader;
 
 use crate::genetic_algorithm::plugin::{
     FinishedEvaluatingEvent, StartEvaluatingEvent, POPULATION_SIZE,
@@ -10,11 +13,9 @@ use super::{
     logger::LoggerPlugin,
     muscle::MusclePlugin,
     node,
-    resources::{EvaluationStopwatch, GenerationCount},
+    resources::{Config, EvaluationStopwatch, GenerationCount},
     ui::UIPlugin,
 };
-
-const EVALUATION_TIME: f32 = 5.0;
 
 pub struct SimulationPlugin;
 
@@ -26,12 +27,35 @@ impl Plugin for SimulationPlugin {
         app.add_plugin(UIPlugin)
             .add_plugin(MusclePlugin)
             .add_plugin(LoggerPlugin)
+            .insert_resource(match load_config_from_file() {
+                Ok(x) => {
+                    info!("Loaded config from file");
+                    x
+                }
+                Err(_) => {
+                    info!("Config file not found or badly formatted, using default config");
+                    Config::default()
+                }
+            })
             .insert_resource(CreaturesCreated::default())
             .insert_resource(EvaluationStopwatch::default())
             .insert_resource(GenerationCount::default())
+            .add_startup_system(apply_config.system())
             .add_system(simulate.system())
             .add_system(evaluate_simulation.system());
     }
+}
+
+fn load_config_from_file() -> Result<Config, ron::error::Error> {
+    let input_path = "config.ron";
+    let file = File::open(&input_path)?;
+    let config: Config = from_reader(file)?;
+    Ok(config)
+}
+
+fn apply_config(config: Res<Config>, mut integration_parameters: ResMut<IntegrationParameters>) {
+    let inv_dt = integration_parameters.inv_dt();
+    integration_parameters.set_inv_dt(inv_dt / config.time_scale);
 }
 
 fn simulate(
@@ -89,10 +113,11 @@ fn evaluate_simulation(
     mut creatures: Query<(Entity, &mut Creature)>,
     collider_node_positions: Query<(&ColliderPosition, &Parent), With<node::Node>>,
     mut finished_evaluating_events: EventWriter<FinishedEvaluatingEvent>,
+    config: Res<Config>,
 ) {
-    stopwatch.0.tick(time.delta());
+    stopwatch.0.tick(time.delta() * config.time_scale as u32);
 
-    if stopwatch.0.paused() || stopwatch.0.elapsed_secs() <= EVALUATION_TIME {
+    if stopwatch.0.paused() || stopwatch.0.elapsed_secs() <= config.evaluation_time {
         return;
     }
 

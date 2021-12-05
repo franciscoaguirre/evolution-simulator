@@ -6,6 +6,7 @@ use bevy_rapier3d::prelude::*;
 
 use super::creature::Creature;
 use super::node;
+use super::resources::Config;
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
 
 pub struct Muscle {
@@ -54,9 +55,15 @@ impl Plugin for MusclePlugin {
     }
 }
 
-fn advance_internal_clocks(mut creatures: Query<&mut Creature>, time: Res<Time>) {
+fn advance_internal_clocks(
+    mut creatures: Query<&mut Creature>,
+    time: Res<Time>,
+    config: Res<Config>,
+) {
     for mut creature in creatures.iter_mut() {
-        creature.internal_clock.tick(time.delta());
+        creature
+            .internal_clock
+            .tick(time.delta() * config.time_scale as u32);
 
         if creature.internal_clock.elapsed_secs() >= creature.chromosome.internal_clock_size {
             creature.internal_clock.reset();
