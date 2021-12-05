@@ -4,6 +4,7 @@ use bevy_prototype_debug_lines::*;
 use bevy_rapier3d::na::{ArrayStorage, Const, Matrix};
 use bevy_rapier3d::prelude::*;
 
+use super::creature::Creature;
 use super::node;
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
 
@@ -16,7 +17,7 @@ pub struct Muscle {
 }
 
 impl Muscle {
-    fn from_phenotype(muscle_phenotype: &MusclePhenotype, nodes: &Vec<Entity>) -> Muscle {
+    fn from_phenotype(muscle_phenotype: &MusclePhenotype, nodes: &[Entity]) -> Muscle {
         Muscle {
             nodes: (
                 nodes[muscle_phenotype.nodes.0],
@@ -33,7 +34,7 @@ impl Muscle {
 pub fn create_muscle(
     parent: &mut ChildBuilder,
     muscle_phenotype: &MusclePhenotype,
-    nodes: &Vec<Entity>,
+    nodes: &[Entity],
 ) {
     parent
         .spawn()
@@ -47,8 +48,19 @@ impl Plugin for MusclePlugin {
         app.insert_resource(Stopwatch::new())
             .insert_resource(Timer::from_seconds(2.0, false))
             .add_plugin(DebugLinesPlugin)
+            .add_system(advance_internal_clocks.system())
             .add_system(draw_muscles.system())
             .add_system(apply_forces.system());
+    }
+}
+
+fn advance_internal_clocks(mut creatures: Query<&mut Creature>, time: Res<Time>) {
+    for mut creature in creatures.iter_mut() {
+        creature.internal_clock.tick(time.delta());
+
+        if creature.internal_clock.elapsed_secs() >= creature.chromosome.internal_clock_size {
+            creature.internal_clock.reset();
+        }
     }
 }
 
@@ -76,16 +88,17 @@ fn get_node_position(
 
 fn apply_forces(
     time: Res<Time>,
-    mut stopwatch: ResMut<Stopwatch>,
-    muscles: Query<&Muscle>,
+    muscles: Query<(&Muscle, &Parent)>,
     nodes: Query<&node::Node>,
     node_positions: Query<&ColliderPosition, With<node::Node>>,
     mut node_velocities: Query<&mut RigidBodyVelocity, With<node::Node>>,
+    creatures: Query<&Creature>,
 ) {
-    stopwatch.tick(time.delta());
-
-    for muscle in muscles.iter() {
-        let should_contract = stopwatch.elapsed_secs() <= muscle.contracted_time;
+    for (muscle, parent) in muscles.iter() {
+        let creature = creatures.get(parent.0).unwrap();
+        let internal_clock_size = creature.chromosome.internal_clock_size;
+        let should_contract =
+            creature.internal_clock.elapsed_secs() <= muscle.contracted_time * internal_clock_size;
         let target_length = if should_contract {
             muscle.contracted_length
         } else {
@@ -94,7 +107,8 @@ fn apply_forces(
 
         let first_node_position = get_node_position(muscle.nodes.0, &node_positions);
         let second_node_position = get_node_position(muscle.nodes.1, &node_positions);
-        let mut first_to_second_direction = (second_node_position - first_node_position).normalize();
+        let mut first_to_second_direction =
+            (second_node_position - first_node_position).normalize();
 
         if first_node_position == second_node_position {
             first_to_second_direction = Vec3::new(0.0, 0.0, 1.0).into();
@@ -120,10 +134,5 @@ fn apply_forces(
         let mut second_node_velocity = node_velocities.get_mut(muscle.nodes.1).unwrap();
         second_node_velocity.linvel +=
             first_to_second_direction * force * second_node_strength * time.delta_seconds();
-    }
-
-    // TODO: Make this 10.0 a constant or a variable that's different for each creature
-    if stopwatch.elapsed_secs() >= 1.0 {
-        stopwatch.reset();
     }
 }
