@@ -3,7 +3,7 @@ use rand::Rng;
 use crate::genetic_algorithm::*;
 
 use super::{
-    constants::ELIMINATION_MUTATION_CHANCE,
+    constants::{CREATION_MUTATION_CHANCE, ELIMINATION_MUTATION_CHANCE},
     muscle_phenotype::MusclePhenotype,
     node_phenotype::NodePhenotype,
     operations::{
@@ -216,6 +216,15 @@ impl Mutable for CreatureChromosome {
         if rand::random::<f32>() > ELIMINATION_MUTATION_CHANCE {
             muscles.remove(muscle_index_remove);
         }
+        if rand::random::<f32>() > CREATION_MUTATION_CHANCE {
+            nodes.push(NodePhenotype::random());
+        }
+        if rand::random::<f32>() > CREATION_MUTATION_CHANCE {
+            let mut muscle = MusclePhenotype::random();
+            muscle.nodes.0 = rand::thread_rng().gen_range(0..nodes.len());
+            muscle.nodes.1 = rand::thread_rng().gen_range(0..nodes.len());
+            muscles.push(muscle);
+        }
 
         CreatureChromosome {
             nodes,
@@ -241,12 +250,8 @@ impl Correctable for CreatureChromosome {
 
 impl RandomCreatable for CreatureChromosome {
     fn random() -> Self {
-        let nodes: Vec<NodePhenotype> = (2..10)
-            .map(|_| NodePhenotype::random())
-            .collect();
-        let muscles: Vec<MusclePhenotype> = (1..10)
-            .map(|_| MusclePhenotype::random())
-            .collect();
+        let nodes: Vec<NodePhenotype> = (2..10).map(|_| NodePhenotype::random()).collect();
+        let muscles: Vec<MusclePhenotype> = (1..10).map(|_| MusclePhenotype::random()).collect();
 
         let mut creature = CreatureChromosome {
             nodes,
