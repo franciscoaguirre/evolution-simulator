@@ -13,6 +13,8 @@ use super::{
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct CreatureChromosome {
+    /// The internal clock goes from 0 to this value
+    pub internal_clock_size: f32,
     pub fitness: f32,
     pub nodes: Vec<node_phenotype::NodePhenotype>,
     pub muscles: Vec<muscle_phenotype::MusclePhenotype>,
@@ -253,9 +255,11 @@ impl RandomCreatable for CreatureChromosome {
         let nodes: Vec<NodePhenotype> = (2..10).map(|_| NodePhenotype::random()).collect();
         let muscles: Vec<MusclePhenotype> = (1..10).map(|_| MusclePhenotype::random()).collect();
 
+        let mut rng = rand::thread_rng();
         let mut creature = CreatureChromosome {
             nodes,
             muscles,
+            internal_clock_size: rng.gen_range(1.0..5.0),
             ..Default::default()
         };
 
@@ -343,8 +347,8 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(creature_chromosome.is_correct(), false);
+        assert!(!creature_chromosome.is_correct());
         creature_chromosome.correct();
-        assert_eq!(creature_chromosome.is_correct(), true);
+        assert!(creature_chromosome.is_correct());
     }
 }

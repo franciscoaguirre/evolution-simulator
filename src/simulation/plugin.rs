@@ -44,12 +44,13 @@ fn simulate(
     mut start_evaluating_event: EventReader<StartEvaluatingEvent>,
 ) {
     for event in start_evaluating_event.iter() {
+        let position = Vec3::default() + Vec3::new(10.0, 0.0, 0.0) * creatures_created.0 as f32;
         create_creature(
             &mut commands,
             &mut meshes,
             &mut materials,
             event.chromosome.clone(),
-            Vec3::default() + Vec3::new(10.0, 0.0, 0.0) * creatures_created.0 as f32,
+            position,
         );
 
         creatures_created.0 += 1;

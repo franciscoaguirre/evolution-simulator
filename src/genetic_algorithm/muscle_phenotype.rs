@@ -5,9 +5,11 @@ use super::{
 use rand::Rng;
 
 /// Represents the characteristics of a Muscle
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct MusclePhenotype {
-    /// Time the muscle is contracting
+    /// Percentage of time of the creature's internal clock
+    /// the muscle is contracting. The rest of the time
+    /// the muscle is extending
     pub contracted_time: f32,
     /// Maximum length the muscle can reach
     pub extended_length: f32,
@@ -70,19 +72,19 @@ impl Mutable for MusclePhenotype {
         let mut strength = self.strength;
 
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
-            contracted_time = contracted_time + (rand::random::<f32>() - 0.5) * mutation_rate;
+            contracted_time += (rand::random::<f32>() - 0.5) * mutation_rate;
             contracted_time = contracted_time
                 .max(MIN_CONTRACTED_TIME)
                 .min(MAX_CONTRACTED_TIME);
         }
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
-            extended_length = extended_length + (rand::random::<f32>() - 0.5) * mutation_rate;
+            extended_length += (rand::random::<f32>() - 0.5) * mutation_rate;
             extended_length = extended_length
                 .max(MIN_EXTENDED_LENGTH)
                 .min(MAX_EXTENDED_LENGTH);
         }
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
-            contracted_length = contracted_length + (rand::random::<f32>() - 0.5) * mutation_rate;
+            contracted_length += (rand::random::<f32>() - 0.5) * mutation_rate;
             contracted_length = contracted_length
                 .max(MIN_CONTRACTED_LENGTH)
                 .min(MAX_CONTRACTED_LENGTH)
@@ -91,7 +93,7 @@ impl Mutable for MusclePhenotype {
             extended_length = extended_length.max(contracted_length);
         }
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
-            strength = strength + (rand::random::<f32>() - 0.5) * mutation_rate;
+            strength += (rand::random::<f32>() - 0.5) * mutation_rate;
             strength = strength.max(MIN_STRENGTH).min(MAX_STRENGTH);
         }
 

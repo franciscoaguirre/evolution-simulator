@@ -50,7 +50,7 @@ impl RandomCreatable for NodePhenotype {
         NodePhenotype {
             position: Vec3::new(
                 (rand::random::<f32>() * 2.0 - 1.0) * 10.0,
-                (rand::random::<f32>() + 0.5 * 2.0) * 10.0,
+                rand::random::<f32>() * 2.0,
                 (rand::random::<f32>() * 2.0 - 1.0) * 10.0,
             ),
             friction: rand::random::<f32>() * 2.0,
