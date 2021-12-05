@@ -2,6 +2,7 @@ use super::{
     constants::SINGLE_VALUE_MUTATION_CHANCE,
     operations::{Crossable, Mutable, RandomCreatable},
 };
+use rand::Rng;
 
 /// Represents the characteristics of a Muscle
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
@@ -106,12 +107,14 @@ impl Mutable for MusclePhenotype {
 
 impl RandomCreatable for MusclePhenotype {
     fn random() -> Self {
+        let mut rng = rand::thread_rng();
+
         MusclePhenotype {
             contracted_time: rand::random::<f32>(),
             extended_length: rand::random::<f32>(),
             contracted_length: rand::random::<f32>(),
             strength: rand::random::<f32>(),
-            nodes: (0, 0),
+            nodes: (rng.gen_range(0..10), rng.gen_range(0..10)),
         }
     }
 }
