@@ -70,12 +70,16 @@ fn simulate(
     mut commands: Commands,
     mut stopwatch: ResMut<EvaluationStopwatch>,
     mut start_evaluating_event: EventReader<StartEvaluatingEvent>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     config: Res<Config>,
 ) {
     for event in start_evaluating_event.iter() {
         create_creature(
             &mut commands,
             event.chromosome.clone(),
+            &mut meshes,
+            &mut materials,
             config.node_size,
         );
 

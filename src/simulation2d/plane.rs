@@ -18,6 +18,8 @@ pub fn create_plane(
     };
     commands
         .spawn_bundle(collider)
-        .insert(ColliderPositionSync::Discrete)
-        .insert(ColliderDebugRender::with_id(2));
+        .insert(ColliderDebugRender {
+            color: Color::Rgba { red: 100.0, green: 150.0, blue: 100.0, alpha: 1.0 }
+        })
+        .insert(ColliderPositionSync::Discrete);
 }

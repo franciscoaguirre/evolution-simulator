@@ -120,7 +120,7 @@ fn apply_forces(
             (second_node_position - first_node_position).normalize();
 
         if first_node_position == second_node_position {
-            first_to_second_direction = Vec2::new(0.0, 1.0).into();
+            first_to_second_direction = Vec2::new(0.0, 0.1).into();
         }
 
         let second_to_first_direction = -first_to_second_direction;
@@ -133,12 +133,29 @@ fn apply_forces(
         let first_node_strength = muscle.strength * (1.0 / config.air_friction);
         let second_node_strength = muscle.strength * (1.0 / config.air_friction);
 
+        let gravity: ColumnMatrix = (Vec2::new(0.0, -0.4) * time.delta_seconds()).into();
+
         let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
         first_node_velocity.linvel +=
             second_to_first_direction * force * first_node_strength * time.delta_seconds();
+        first_node_velocity.linvel += gravity;
+
+        let friction: ColumnMatrix = Vec2::new(-first_node_velocity.linvel.x * nodes.get(muscle.nodes.0).unwrap().friction, 0.0).into();
+
+        if first_node_position.y < 0.14 {
+            first_node_velocity.linvel += friction
+        }
 
         let mut second_node_velocity = node_velocities.get_mut(muscle.nodes.1).unwrap();
         second_node_velocity.linvel +=
             first_to_second_direction * force * second_node_strength * time.delta_seconds();
+
+        second_node_velocity.linvel += gravity;
+
+        let friction: ColumnMatrix = Vec2::new(-second_node_velocity.linvel.x * nodes.get(muscle.nodes.1).unwrap().friction, 0.0).into();
+
+        if second_node_position.y < 0.14 {
+            second_node_velocity.linvel += friction
+        }
     }
 }

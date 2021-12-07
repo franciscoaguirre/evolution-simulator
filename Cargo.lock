@@ -521,17 +521,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_rapier3d"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "674410743c3a79c831b81c948a0fd81001bad739dcc913eec3294e6967ac5867"
-dependencies = [
- "bevy",
- "nalgebra",
- "rapier3d",
-]
-
-[[package]]
 name = "bevy_reflect"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1354,7 +1343,6 @@ dependencies = [
  "bevy_fly_camera",
  "bevy_prototype_debug_lines",
  "bevy_rapier2d",
- "bevy_rapier3d",
  "rand",
  "ron 0.7.0",
  "serde",
@@ -2699,25 +2687,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "parry3d"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "067fa44bf7f7cc4022756ef9796c5f8d67c7a63041df71e6eeb09ad08ab1ece8"
-dependencies = [
- "approx",
- "bitflags",
- "downcast-rs",
- "either",
- "nalgebra",
- "num-derive",
- "num-traits",
- "rustc-hash",
- "simba",
- "slab",
- "smallvec",
-]
-
-[[package]]
 name = "paste"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2875,27 +2844,6 @@ dependencies = [
  "num-derive",
  "num-traits",
  "parry2d",
- "rustc-hash",
- "simba",
-]
-
-[[package]]
-name = "rapier3d"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfc8dde2352efdbc0813938fcc41d12651b4bb05211e81d2b44ff6c09d39b2ac"
-dependencies = [
- "approx",
- "arrayvec 0.7.2",
- "bit-vec",
- "bitflags",
- "crossbeam",
- "downcast-rs",
- "instant",
- "nalgebra",
- "num-derive",
- "num-traits",
- "parry3d",
  "rustc-hash",
  "simba",
 ]

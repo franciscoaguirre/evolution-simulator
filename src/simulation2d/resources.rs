@@ -16,10 +16,10 @@ impl Default for Config {
         Config {
             evaluation_time: 15.0,
             time_scale: 1.0,
-            gravity: 9.8,
+            gravity: 0.0,
             population_size: 4,
             air_friction: 1.05,
-            node_size: 0.08,
+            node_size: 0.1,
         }
     }
 }

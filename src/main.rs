@@ -1,5 +1,5 @@
-use bevy::{prelude::*, input::mouse::MouseWheel, render::camera::OrthographicProjection};
-use bevy_fly_camera::{FlyCamera2d, FlyCameraPlugin};
+use bevy::{prelude::*, render::camera::OrthographicProjection};
+use bevy_fly_camera::{FlyCameraPlugin};
 use bevy_rapier2d::prelude::*;
 
 mod simulation2d;
@@ -18,17 +18,12 @@ struct MainCamera;
 fn setup(
     mut commands: Commands,
 ) {
-    // camera
+    // Camera
     commands
         .spawn_bundle(OrthographicCameraBundle::new_2d())
         .insert(MainCamera);
         // .insert(FlyCamera2d::default());
 
-    // light
-    commands.spawn_bundle(LightBundle {
-        transform: Transform::from_xyz(4.0, 5.0, -4.0),
-        ..Default::default()
-    });
     create_plane(&mut commands);
 }
 
@@ -75,7 +70,6 @@ fn move_camera(
 
     for (mut camera, mut transform) in cameras.iter_mut() {
         camera.scale = DEFAULT_ZOOM + camera_transform.relative_zoom;
-        dbg!(camera.scale);
 
         transform.translation = Vec3::new(camera_transform.position.x, camera_transform.position.y, 0.0);
     }
