@@ -1,8 +1,8 @@
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::ColliderPosition;
+use bevy_rapier2d::prelude::ColliderPosition;
 
 use super::{
-    creature::Creature, node, plugin::calculate_creatures_position, resources::FitnessStats,
+    node, plugin::calculate_creatures_position, resources::FitnessStats,
 };
 
 pub struct LoggerPlugin;
@@ -16,21 +16,21 @@ impl Plugin for LoggerPlugin {
 
 fn log_nodes_fitness(
     mut fitness_stats: ResMut<FitnessStats>,
-    creatures: Query<(Entity, &Creature)>,
+    creatures: Query<Entity>,
     collider_node_positions: Query<(&ColliderPosition, &Parent), With<node::Node>>,
 ) {
     let mut fitnesses: Vec<f32> = Vec::new();
 
-    for (entity, creature) in creatures.iter() {
+    for entity in creatures.iter() {
         let position = calculate_creatures_position(entity, &collider_node_positions);
 
-        let fitness = (creature.starting_position - position).length();
+        let fitness = position.length();
 
         if fitness.is_nan() || fitness.is_infinite() {
             continue;
         }
 
-        fitnesses.push((creature.starting_position - position).length());
+        fitnesses.push(position.length());
     }
 
     let best = fitnesses

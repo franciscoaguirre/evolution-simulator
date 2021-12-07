@@ -1,7 +1,7 @@
 use std::fs::File;
 
 use bevy::prelude::*;
-use bevy_rapier3d::{
+use bevy_rapier2d::{
     physics::RapierConfiguration,
     prelude::{ColliderPosition, IntegrationParameters},
 };
@@ -61,7 +61,7 @@ fn apply_config(
 ) {
     let inv_dt = integration_parameters.inv_dt();
     integration_parameters.set_inv_dt(inv_dt / config.time_scale);
-    rapier_configuration.gravity = Vec3::new(0.0, config.gravity, 0.0).into();
+    rapier_configuration.gravity = Vec2::new(0.0, config.gravity).into();
 }
 
 fn simulate(
@@ -69,19 +69,13 @@ fn simulate(
     mut creatures_created: ResMut<CreaturesCreated>,
     mut commands: Commands,
     mut stopwatch: ResMut<EvaluationStopwatch>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut start_evaluating_event: EventReader<StartEvaluatingEvent>,
     config: Res<Config>,
 ) {
     for event in start_evaluating_event.iter() {
-        let position = Vec3::default() + Vec3::new(10.0, 0.0, 0.0) * creatures_created.0 as f32;
         create_creature(
             &mut commands,
-            &mut meshes,
-            &mut materials,
             event.chromosome.clone(),
-            position,
             config.node_size,
         );
 
@@ -100,15 +94,15 @@ fn simulate(
 pub fn calculate_creatures_position(
     entity: Entity,
     collider_node_positions: &Query<(&ColliderPosition, &Parent), With<node::Node>>,
-) -> Vec3 {
+) -> Vec2 {
     let creature_node_count = collider_node_positions
         .iter()
         .filter(|(_, parent)| parent.0 == entity)
         .count();
-    let positions_sum: Vec3 = collider_node_positions
+    let positions_sum: Vec2 = collider_node_positions
         .iter()
         .filter(|(_, parent)| parent.0 == entity)
-        .fold(Vec3::ZERO, |sum, (collider_position, _)| {
+        .fold(Vec2::ZERO, |sum, (collider_position, _)| {
             sum + collider_position.0.translation.vector.into()
         });
     positions_sum / creature_node_count as f32
@@ -131,7 +125,7 @@ fn evaluate_simulation(
 
     for (entity, mut creature) in creatures.iter_mut() {
         let position = calculate_creatures_position(entity, &collider_node_positions);
-        creature.chromosome.fitness = (creature.starting_position - position).length();
+        creature.chromosome.fitness = position.length();
         finished_evaluating_events.send(FinishedEvaluatingEvent {
             chromosome: creature.chromosome.clone(),
         });

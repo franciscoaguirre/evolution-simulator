@@ -8,7 +8,7 @@ use bevy::prelude::*;
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct NodePhenotype {
     /// Initial node position in creature
-    pub position: Vec3,
+    pub position: Vec2,
     /// Resistance of node to movement
     pub friction: f32,
 }
@@ -34,7 +34,6 @@ impl Mutable for NodePhenotype {
         if rand::random::<f32>() > POSITION_MUTATION_CHANCE {
             position.x += ((rand::random::<f32>() * 2.0 - 1.0) * 0.1) * mutation_rate;
             position.y += ((rand::random::<f32>() * 2.0 - 1.0) * 0.1) * mutation_rate;
-            position.z += ((rand::random::<f32>() * 2.0 - 1.0) * 0.1) * mutation_rate;
         }
 
         position.y = position.y.max(0.04);
@@ -50,10 +49,9 @@ impl Mutable for NodePhenotype {
 impl RandomCreatable for NodePhenotype {
     fn random() -> Self {
         NodePhenotype {
-            position: Vec3::new(
+            position: Vec2::new(
                 (rand::random::<f32>() * 2.0 - 1.0) * 0.4,
                 rand::random::<f32>() + 0.04 * 0.4,
-                (rand::random::<f32>() * 2.0 - 1.0) * 0.4,
             ),
             friction: rand::random::<f32>(),
         }

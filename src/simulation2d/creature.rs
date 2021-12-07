@@ -8,16 +8,12 @@ use super::node;
 
 pub struct Creature {
     pub chromosome: CreatureChromosome,
-    pub starting_position: Vec3,
     pub internal_clock: Stopwatch,
 }
 
 pub fn create_creature(
     commands: &mut Commands,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<StandardMaterial>>,
     creature_chromosome: CreatureChromosome,
-    position: Vec3,
     node_size: f32,
 ) {
     let mut nodes: Vec<Entity> = vec![];
@@ -26,13 +22,12 @@ pub fn create_creature(
         .spawn()
         .insert(Creature {
             chromosome: creature_chromosome.clone(),
-            starting_position: position,
             internal_clock: Stopwatch::new(),
         })
         .with_children(|parent| {
             for node in creature_chromosome.nodes.iter() {
                 let entity =
-                    node::create_node(parent, meshes, materials, node, position, node_size);
+                    node::create_node(parent,  node, node_size);
                 nodes.push(entity)
             }
 

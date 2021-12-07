@@ -510,6 +510,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_rapier2d"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f30e09ee07dece801f85250d2236c9b9113c76598ac0d7b79cc4cad7223eafe"
+dependencies = [
+ "bevy",
+ "nalgebra",
+ "rapier2d",
+]
+
+[[package]]
 name = "bevy_rapier3d"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1342,6 +1353,7 @@ dependencies = [
  "bevy",
  "bevy_fly_camera",
  "bevy_prototype_debug_lines",
+ "bevy_rapier2d",
  "bevy_rapier3d",
  "rand",
  "ron 0.7.0",
@@ -2667,6 +2679,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "parry2d"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e03714e76fd6708c1fa3fc4f58a66dabd723bb87865548657a037beaf9a8eea"
+dependencies = [
+ "approx",
+ "arrayvec 0.7.2",
+ "bitflags",
+ "downcast-rs",
+ "either",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "rustc-hash",
+ "simba",
+ "slab",
+ "smallvec",
+]
+
+[[package]]
 name = "parry3d"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2825,6 +2857,27 @@ name = "range-alloc"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63e935c45e09cc6dcf00d2f0b2d630a58f4095320223d47fc68918722f0538b6"
+
+[[package]]
+name = "rapier2d"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c45d2910dbd279941b71ef9d20da877a0eada21f8117fcac70941e458100ea86"
+dependencies = [
+ "approx",
+ "arrayvec 0.7.2",
+ "bit-vec",
+ "bitflags",
+ "crossbeam",
+ "downcast-rs",
+ "instant",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "parry2d",
+ "rustc-hash",
+ "simba",
+]
 
 [[package]]
 name = "rapier3d"

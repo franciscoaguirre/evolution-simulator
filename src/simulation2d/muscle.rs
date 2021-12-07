@@ -1,8 +1,8 @@
 use bevy::core::Stopwatch;
 use bevy::prelude::*;
 use bevy_prototype_debug_lines::*;
-use bevy_rapier3d::na::{ArrayStorage, Const, Matrix};
-use bevy_rapier3d::prelude::*;
+use bevy_rapier2d::na::{ArrayStorage, Const, Matrix};
+use bevy_rapier2d::prelude::*;
 
 use super::creature::Creature;
 use super::node;
@@ -79,12 +79,13 @@ fn draw_muscles(
     for muscle in muscles.iter() {
         let start = nodes.get(muscle.nodes.0).unwrap().0.translation.vector;
         let end = nodes.get(muscle.nodes.1).unwrap().0.translation.vector;
-        lines.line(start.into(), end.into(), 0.0);
+
+        lines.line(Vec3::new(start.x, start.y, 0.0), Vec3::new(end.x, end.y, 0.0), 0.0);
     }
 }
 
 type ColumnMatrix =
-    Matrix<f32, Const<3_usize>, Const<1_usize>, ArrayStorage<f32, 3_usize, 1_usize>>;
+    Matrix<f32, Const<2_usize>, Const<1_usize>, ArrayStorage<f32, 2_usize, 1_usize>>;
 
 fn get_node_position(
     node: Entity,
@@ -119,7 +120,7 @@ fn apply_forces(
             (second_node_position - first_node_position).normalize();
 
         if first_node_position == second_node_position {
-            first_to_second_direction = Vec3::new(0.0, 0.0, 1.0).into();
+            first_to_second_direction = Vec2::new(0.0, 1.0).into();
         }
 
         let second_to_first_direction = -first_to_second_direction;

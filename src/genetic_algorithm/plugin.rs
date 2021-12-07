@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::simulation::resources::Config;
+use crate::simulation2d::resources::Config;
 
 use super::{creature_chromosome::CreatureChromosome, runner::Algorithm};
 
