@@ -13,14 +13,23 @@ pub fn create_node(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     node_phenotype: &NodePhenotype,
     position_offset: Vec3,
+    node_size: f32,
 ) -> Entity {
     let rigid_body = RigidBodyBundle {
         position: (node_phenotype.position + position_offset).into(),
+        ccd: RigidBodyCcd {
+            ccd_enabled: true,
+            ..Default::default()
+        },
         ..Default::default()
     };
     let collider = ColliderBundle {
         position: (node_phenotype.position + position_offset).into(),
-        shape: ColliderShape::ball(0.5),
+        shape: ColliderShape::ball(node_size / 2.0),
+        material: ColliderMaterial {
+            friction: 800.0,
+            ..Default::default()
+        },
         flags: ColliderFlags {
             collision_groups: InteractionGroups::new(0b10, 0b01),
             ..Default::default()
@@ -37,7 +46,7 @@ pub fn create_node(
         .insert_bundle(collider)
         .insert_bundle(PbrBundle {
             mesh: meshes.add(Mesh::from(bevyShape::Icosphere {
-                radius: 0.5,
+                radius: node_size / 2.0,
                 subdivisions: 4,
             })),
             material: materials.add(StandardMaterial {

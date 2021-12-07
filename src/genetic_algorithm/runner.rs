@@ -1,4 +1,4 @@
-use super::{operations::Individual, plugin::POPULATION_SIZE};
+use super::operations::Individual;
 
 #[derive(Default)]
 pub struct Algorithm<T: Individual> {
@@ -19,11 +19,11 @@ impl<T: Individual> Algorithm<T> {
     }
 
     /// Select the parents for the next generation
-    pub fn selection(&mut self) {
+    pub fn selection(&mut self, population_size: usize) {
         self.population
             .sort_by(|a, b| b.get_fitness().partial_cmp(&a.get_fitness()).unwrap());
 
-        self.population = self.population[0..POPULATION_SIZE].to_vec();
+        self.population = self.population[0..population_size].to_vec();
     }
 
     /// Takes the best parents and creates a new population
@@ -57,7 +57,7 @@ impl<T: Individual> Algorithm<T> {
         self.new_population.push(chromosome);
     }
 
-    pub fn all_have_finished_evaluating(&self) -> bool {
-        self.new_population.len() == POPULATION_SIZE * 2
+    pub fn all_have_finished_evaluating(&self, population_size: usize) -> bool {
+        self.new_population.len() == population_size * 2
     }
 }

@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
-use super::{creature_chromosome::CreatureChromosome, runner::Algorithm};
+use crate::simulation::resources::Config;
 
-pub const POPULATION_SIZE: usize = 4;
+use super::{creature_chromosome::CreatureChromosome, runner::Algorithm};
 
 pub struct GeneticAlgorithmPlugin;
 
@@ -34,8 +34,9 @@ impl Plugin for GeneticAlgorithmPlugin {
 fn setup_genetic_algorithm(
     mut ga: ResMut<CreatureGA>,
     mut start_evaluating_events: EventWriter<StartEvaluatingEvent>,
+    config: Res<Config>,
 ) {
-    ga.initialize_population(POPULATION_SIZE);
+    ga.initialize_population(config.population_size);
     ga.reproduction();
     for chromosome in ga.population.iter().chain(ga.offspring_population.iter()) {
         start_evaluating_events.send(StartEvaluatingEvent {
@@ -47,10 +48,11 @@ fn setup_genetic_algorithm(
 fn genetic_algorithm_system(
     mut ga: ResMut<CreatureGA>,
     mut start_evaluating_events: EventWriter<StartEvaluatingEvent>,
+    config: Res<Config>,
 ) {
-    if ga.all_have_finished_evaluating() {
+    if ga.all_have_finished_evaluating(config.population_size) {
         ga.replacement();
-        ga.selection();
+        ga.selection(config.population_size);
         ga.reproduction();
         for chromosome in ga.population.iter().chain(ga.offspring_population.iter()) {
             start_evaluating_events.send(StartEvaluatingEvent {

@@ -12,6 +12,10 @@ pub fn create_plane(
             collision_groups: InteractionGroups::new(0b01, 0b11),
             ..Default::default()
         },
+        material: ColliderMaterial {
+            friction: 800.0,
+            ..Default::default()
+        },
         ..Default::default()
     };
     commands

@@ -100,6 +100,7 @@ fn apply_forces(
     node_positions: Query<&ColliderPosition, With<node::Node>>,
     mut node_velocities: Query<&mut RigidBodyVelocity, With<node::Node>>,
     creatures: Query<&Creature>,
+    config: Res<Config>,
 ) {
     for (muscle, parent) in muscles.iter() {
         let creature = creatures.get(parent.0).unwrap();
@@ -124,15 +125,12 @@ fn apply_forces(
         let second_to_first_direction = -first_to_second_direction;
         let muscle_length = (second_node_position - first_node_position).norm();
 
-        let force = (1.0 - (muscle_length / target_length).powf(2.0))
-            .max(-0.4)
-            .min(0.4);
+        let sign = (target_length - muscle_length).signum();
+        let force =
+            ((muscle_length - target_length) / muscle_length.max(target_length)).powf(2.0) * sign;
 
-        let first_node_friction = nodes.get(muscle.nodes.0).unwrap().friction;
-        let second_node_friction = nodes.get(muscle.nodes.1).unwrap().friction;
-
-        let first_node_strength = muscle.strength * (1.0 / first_node_friction);
-        let second_node_strength = muscle.strength * (1.0 / second_node_friction);
+        let first_node_strength = muscle.strength * (1.0 / config.air_friction);
+        let second_node_strength = muscle.strength * (1.0 / config.air_friction);
 
         let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
         first_node_velocity.linvel +=

@@ -21,14 +21,17 @@ pub struct MusclePhenotype {
     pub nodes: (usize, usize),
 }
 
-const MAX_CONTRACTED_TIME: f32 = 1.0;
-const MAX_EXTENDED_LENGTH: f32 = 1.0;
-const MAX_CONTRACTED_LENGTH: f32 = 1.0;
-const MAX_STRENGTH: f32 = 1.0;
 const MIN_CONTRACTED_TIME: f32 = 0.0;
-const MIN_EXTENDED_LENGTH: f32 = 0.0;
-const MIN_CONTRACTED_LENGTH: f32 = 0.0;
-const MIN_STRENGTH: f32 = 0.0;
+const MAX_CONTRACTED_TIME: f32 = 1.0;
+
+const MIN_EXTENDED_LENGTH: f32 = 0.08;
+const MAX_EXTENDED_LENGTH: f32 = 0.40;
+
+const MIN_CONTRACTED_LENGTH: f32 = 0.08;
+const MAX_CONTRACTED_LENGTH: f32 = 0.40;
+
+const MIN_STRENGTH: f32 = 1.0;
+const MAX_STRENGTH: f32 = 10.0;
 
 impl Crossable for MusclePhenotype {
     /// Crosses two MusclePhenotypes. Verify that nodes are present in both parents
@@ -113,10 +116,16 @@ impl RandomCreatable for MusclePhenotype {
 
         MusclePhenotype {
             contracted_time: rand::random::<f32>(),
-            extended_length: rand::random::<f32>(),
-            contracted_length: rand::random::<f32>(),
-            strength: rand::random::<f32>(),
-            nodes: (rng.gen_range(0..10), rng.gen_range(0..10)),
+            extended_length: (rand::random::<f32>() * 2.0)
+                .min(MAX_EXTENDED_LENGTH)
+                .max(MIN_EXTENDED_LENGTH),
+            contracted_length: (rand::random::<f32>() * 2.0)
+                .min(MAX_CONTRACTED_LENGTH)
+                .max(MIN_CONTRACTED_LENGTH),
+            strength: (rand::random::<f32>() + 100.0)
+                .min(MAX_STRENGTH)
+                .max(MIN_STRENGTH),
+            nodes: (rng.gen_range(0..20), rng.gen_range(0..20)),
         }
     }
 }

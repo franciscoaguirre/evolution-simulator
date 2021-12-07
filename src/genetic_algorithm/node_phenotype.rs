@@ -32,10 +32,12 @@ impl Mutable for NodePhenotype {
         let mut friction = self.friction;
 
         if rand::random::<f32>() > POSITION_MUTATION_CHANCE {
-            position.x += (rand::random::<f32>() - 0.5) * mutation_rate;
-            position.y += (rand::random::<f32>() - 0.5) * mutation_rate;
-            position.z += (rand::random::<f32>() - 0.5) * mutation_rate;
+            position.x += ((rand::random::<f32>() * 2.0 - 1.0) * 0.1) * mutation_rate;
+            position.y += ((rand::random::<f32>() * 2.0 - 1.0) * 0.1) * mutation_rate;
+            position.z += ((rand::random::<f32>() * 2.0 - 1.0) * 0.1) * mutation_rate;
         }
+
+        position.y = position.y.max(0.04);
 
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
             friction += (rand::random::<f32>() + 0.1) * mutation_rate;
@@ -49,11 +51,11 @@ impl RandomCreatable for NodePhenotype {
     fn random() -> Self {
         NodePhenotype {
             position: Vec3::new(
-                (rand::random::<f32>() * 2.0 - 1.0) * 10.0,
-                rand::random::<f32>() * 2.0,
-                (rand::random::<f32>() * 2.0 - 1.0) * 10.0,
+                (rand::random::<f32>() * 2.0 - 1.0) * 0.4,
+                rand::random::<f32>() + 0.04 * 0.4,
+                (rand::random::<f32>() * 2.0 - 1.0) * 0.4,
             ),
-            friction: rand::random::<f32>() * 2.0,
+            friction: rand::random::<f32>(),
         }
     }
 }

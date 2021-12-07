@@ -18,6 +18,7 @@ pub fn create_creature(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     creature_chromosome: CreatureChromosome,
     position: Vec3,
+    node_size: f32,
 ) {
     let mut nodes: Vec<Entity> = vec![];
 
@@ -30,7 +31,8 @@ pub fn create_creature(
         })
         .with_children(|parent| {
             for node in creature_chromosome.nodes.iter() {
-                let entity = node::create_node(parent, meshes, materials, node, position);
+                let entity =
+                    node::create_node(parent, meshes, materials, node, position, node_size);
                 nodes.push(entity)
             }
 

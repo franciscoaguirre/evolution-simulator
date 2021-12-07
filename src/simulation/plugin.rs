@@ -7,9 +7,7 @@ use bevy_rapier3d::{
 };
 use ron::de::from_reader;
 
-use crate::genetic_algorithm::plugin::{
-    FinishedEvaluatingEvent, StartEvaluatingEvent, POPULATION_SIZE,
-};
+use crate::genetic_algorithm::plugin::{FinishedEvaluatingEvent, StartEvaluatingEvent};
 
 use super::{
     creature::{create_creature, Creature},
@@ -63,7 +61,7 @@ fn apply_config(
 ) {
     let inv_dt = integration_parameters.inv_dt();
     integration_parameters.set_inv_dt(inv_dt / config.time_scale);
-    rapier_configuration.gravity = Vec3::new(0.0, -config.gravity, 0.0).into();
+    rapier_configuration.gravity = Vec3::new(0.0, config.gravity, 0.0).into();
 }
 
 fn simulate(
@@ -74,6 +72,7 @@ fn simulate(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut start_evaluating_event: EventReader<StartEvaluatingEvent>,
+    config: Res<Config>,
 ) {
     for event in start_evaluating_event.iter() {
         let position = Vec3::default() + Vec3::new(10.0, 0.0, 0.0) * creatures_created.0 as f32;
@@ -83,12 +82,13 @@ fn simulate(
             &mut materials,
             event.chromosome.clone(),
             position,
+            config.node_size,
         );
 
         creatures_created.0 += 1;
     }
 
-    if creatures_created.0 == POPULATION_SIZE * 2 {
+    if creatures_created.0 == config.population_size * 2 {
         stopwatch.0.reset();
         stopwatch.0.unpause();
         generation_count.0 += 1;
