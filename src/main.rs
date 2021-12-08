@@ -1,7 +1,7 @@
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin},
     prelude::*,
-    render::camera::OrthographicProjection,
+    render::camera::OrthographicProjection, input,
 };
 mod simulation2d;
 
@@ -103,5 +103,6 @@ fn main() {
         })
         .add_system(camera_movement.system())
         .add_system(move_camera.system())
+        .add_system(input::system::exit_on_esc_system.system())
         .run();
 }

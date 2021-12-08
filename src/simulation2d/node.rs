@@ -9,6 +9,15 @@ pub struct Node {
     pub friction: f32,
 }
 
+#[derive(Bundle)]
+pub struct NodeBundle {
+    node: Node,
+    velocity: Velocity,
+
+    #[bundle]
+    sprite: SpriteBundle,
+}
+
 pub fn create_node(
     parent: &mut ChildBuilder,
     node_phenotype: &NodePhenotype,
@@ -41,4 +50,37 @@ pub fn create_node(
             ..Default::default()
         })
         .id()
+}
+
+pub fn create_node_bundle(
+    parent: &mut ChildBuilder,
+    node_phenotype: &NodePhenotype,
+    _meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+    asset_server: &Res<AssetServer>,
+    node_size: f32,
+) -> NodeBundle {
+    let texture_handle = asset_server.load("circle.png");
+
+    NodeBundle {
+        node: Node {
+            radius: node_size,
+            friction: node_phenotype.friction,
+        },
+        velocity: Velocity(Vec3::default()),
+        sprite: SpriteBundle {
+            material: materials.add(texture_handle.into()),
+            sprite: Sprite {
+                size: Vec2::new(node_size / 2.0, node_size / 2.0),
+                resize_mode: SpriteResizeMode::Manual,
+                ..Default::default()
+            },
+            transform: Transform::from_translation(Vec3::new(
+                node_phenotype.position.x,
+                node_phenotype.position.y,
+                0.0,
+            )),
+            ..Default::default()
+        },
+    }
 }

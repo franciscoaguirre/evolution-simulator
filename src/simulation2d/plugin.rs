@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use ron::de::from_reader;
 
-use crate::genetic_algorithm::plugin::{FinishedEvaluatingEvent, StartEvaluatingEvent};
+use crate::genetic_algorithm::plugin::{FinishedEvaluatingEvent, StartEvaluatingEvent, CreatureGA};
 
 use super::{
     creature::{create_creature, Creature},
@@ -58,6 +58,7 @@ fn load_config_from_file() -> Result<Config, ron::error::Error> {
 }
 
 fn simulate(
+    ga: Res<CreatureGA>,
     mut creatures_created: ResMut<CreaturesCreated>,
     mut commands: Commands,
     mut start_evaluating_events: EventReader<StartEvaluatingEvent>,
@@ -66,19 +67,18 @@ fn simulate(
     asset_server: Res<AssetServer>,
     config: Res<Config>,
 ) {
-    for event in start_evaluating_events.iter() {
-        create_creature(
-            &mut commands,
-            event.chromosome.clone(),
-            &mut meshes,
-            &mut materials,
-            &asset_server,
-            config.node_size,
-        );
-
-        creatures_created.0 += 1;
-
-        dbg!(creatures_created.0);
+    for _event in start_evaluating_events.iter() {
+        for chromosome in ga.population.iter().chain(ga.offspring_population.iter()) {
+            create_creature(
+                &mut commands,
+                chromosome.clone(),
+                &mut meshes,
+                &mut materials,
+                &asset_server,
+                config.node_size,
+            );
+            creatures_created.0 += 1;
+        }
     }
 }
 
@@ -125,7 +125,7 @@ pub fn calculate_creatures_position(
 
 fn evaluate_simulation(
     mut commands: Commands,
-    stopwatch: ResMut<EvaluationStopwatch>,
+    mut stopwatch: ResMut<EvaluationStopwatch>,
     mut creatures: Query<(Entity, &mut Creature)>,
     collider_node_positions: Query<(&Transform, &Parent), With<node::Node>>,
     mut finished_evaluating_events: EventWriter<FinishedEvaluatingEvent>,
@@ -144,4 +144,6 @@ fn evaluate_simulation(
 
         commands.entity(entity).despawn_recursive();
     }
+
+    stopwatch.0.pause();
 }

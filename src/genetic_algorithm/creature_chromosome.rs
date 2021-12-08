@@ -212,7 +212,7 @@ impl Mutable for CreatureChromosome {
         let node_index_remove: usize = rand::thread_rng().gen_range(0..nodes.len());
         let muscle_index_remove: usize = rand::thread_rng().gen_range(0..muscles.len());
 
-        if rand::random::<f32>() > ELIMINATION_MUTATION_CHANCE {
+        if rand::random::<f32>() > ELIMINATION_MUTATION_CHANCE && nodes.len() > 2 {
             nodes.remove(node_index_remove);
         }
         if rand::random::<f32>() > ELIMINATION_MUTATION_CHANCE {

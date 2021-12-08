@@ -6,9 +6,8 @@ use super::{creature_chromosome::CreatureChromosome, runner::Algorithm};
 
 pub struct GeneticAlgorithmPlugin;
 
-pub struct StartEvaluatingEvent {
-    pub chromosome: CreatureChromosome,
-}
+pub struct StartEvaluatingEvent;
+
 
 pub struct FinishedEvaluatingEvent {
     pub chromosome: CreatureChromosome,
@@ -17,7 +16,7 @@ pub struct FinishedEvaluatingEvent {
 #[derive(Default)]
 struct FinishedEvaluatingCounter(usize);
 
-type CreatureGA = Algorithm<CreatureChromosome>;
+pub type CreatureGA = Algorithm<CreatureChromosome>;
 
 impl Plugin for GeneticAlgorithmPlugin {
     fn build(&self, app: &mut AppBuilder) {
@@ -38,11 +37,7 @@ fn setup_genetic_algorithm(
 ) {
     ga.initialize_population(config.population_size);
     ga.reproduction();
-    for chromosome in ga.population.iter().chain(ga.offspring_population.iter()) {
-        start_evaluating_events.send(StartEvaluatingEvent {
-            chromosome: chromosome.clone(),
-        })
-    }
+    start_evaluating_events.send(StartEvaluatingEvent)
 }
 
 fn genetic_algorithm_system(
@@ -55,12 +50,7 @@ fn genetic_algorithm_system(
         ga.replacement();
         ga.selection(config.population_size);
         ga.reproduction();
-        for chromosome in ga.population.iter().chain(ga.offspring_population.iter()) {
-            start_evaluating_events.send(StartEvaluatingEvent {
-                chromosome: chromosome.clone(),
-            });
-        }
-        dbg!("STARTED NEW GEN'", generation_count.0);
+        start_evaluating_events.send(StartEvaluatingEvent);
     }
 }
 

@@ -19,6 +19,11 @@ pub struct Muscle {
     nodes: (Entity, Entity),
 }
 
+#[derive(Bundle)]
+pub struct MuscleBundle {
+    muscle: Muscle,
+}
+
 impl Muscle {
     fn from_phenotype(muscle_phenotype: &MusclePhenotype, nodes: &[Entity]) -> Muscle {
         Muscle {
@@ -42,6 +47,14 @@ pub fn create_muscle(
     parent
         .spawn()
         .insert(Muscle::from_phenotype(muscle_phenotype, nodes));
+}
+
+pub fn create_muscle_bundle(
+    parent: &mut ChildBuilder,
+    muscle_phenotype: &MusclePhenotype,
+    nodes: &[Entity],
+) -> MuscleBundle {
+    MuscleBundle { muscle: Muscle::from_phenotype(muscle_phenotype, nodes) }
 }
 
 pub struct MusclePlugin;

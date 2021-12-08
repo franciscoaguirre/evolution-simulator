@@ -36,10 +36,8 @@ impl<T: Individual> Algorithm<T> {
 
             first_child = first_child.mutate(1.0);
             second_child = second_child.mutate(1.0);
-
             first_child.correct();
             second_child.correct();
-
             offspring_population.push(first_child);
             offspring_population.push(second_child);
         }

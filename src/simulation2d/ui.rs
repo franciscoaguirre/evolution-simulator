@@ -236,7 +236,7 @@ fn update_frames_stats(
 
         if let Some(diagnostic) = diagnostics.get(FrameTimeDiagnosticsPlugin::FRAME_TIME) {
             if let Some(value) = diagnostic.value() {
-                text.sections[1].value = format!("AVG FPS: {:.4}\n", value);
+                text.sections[1].value = format!("FRAME TIME: {:.4}\n", value);
             }
         }
     }
