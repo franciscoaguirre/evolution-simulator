@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::simulation2d::resources::Config;
+use crate::simulation2d::resources::{Config, GenerationCount};
 
 use super::{creature_chromosome::CreatureChromosome, runner::Algorithm};
 
@@ -49,6 +49,7 @@ fn genetic_algorithm_system(
     mut ga: ResMut<CreatureGA>,
     mut start_evaluating_events: EventWriter<StartEvaluatingEvent>,
     config: Res<Config>,
+    generation_count: Res<GenerationCount>,
 ) {
     if ga.all_have_finished_evaluating(config.population_size) {
         ga.replacement();
@@ -57,8 +58,9 @@ fn genetic_algorithm_system(
         for chromosome in ga.population.iter().chain(ga.offspring_population.iter()) {
             start_evaluating_events.send(StartEvaluatingEvent {
                 chromosome: chromosome.clone(),
-            })
+            });
         }
+        dbg!("STARTED NEW GEN'", generation_count.0);
     }
 }
 

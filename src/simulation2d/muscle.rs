@@ -1,12 +1,15 @@
 use bevy::core::Stopwatch;
 use bevy::prelude::*;
 use bevy_prototype_debug_lines::*;
+use std::time::Instant;
 
 use super::creature::Creature;
 use super::node;
 use super::physics::Velocity;
 use super::resources::Config;
+use crate::utils::time_log::ScopeCall;
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
+use crate::utils::time_log::log_time;
 
 pub struct Muscle {
     contracted_time: f32,
@@ -91,9 +94,9 @@ fn apply_forces(
     creatures: Query<&Creature>,
     config: Res<Config>,
 ) {
-    let delta_time = time.delta_seconds() * config.time_scale;
+    // log_time!();
 
-    dbg!(delta_time);
+    let delta_time = time.delta_seconds() * config.time_scale;
 
     for (muscle, parent) in muscles.iter() {
         let creature = creatures.get(parent.0).unwrap();

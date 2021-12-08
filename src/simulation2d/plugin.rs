@@ -60,13 +60,13 @@ fn load_config_from_file() -> Result<Config, ron::error::Error> {
 fn simulate(
     mut creatures_created: ResMut<CreaturesCreated>,
     mut commands: Commands,
-    mut start_evaluating_event: EventReader<StartEvaluatingEvent>,
+    mut start_evaluating_events: EventReader<StartEvaluatingEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
     config: Res<Config>,
 ) {
-    for event in start_evaluating_event.iter() {
+    for event in start_evaluating_events.iter() {
         create_creature(
             &mut commands,
             event.chromosome.clone(),
@@ -77,6 +77,8 @@ fn simulate(
         );
 
         creatures_created.0 += 1;
+
+        dbg!(creatures_created.0);
     }
 }
 
@@ -142,6 +144,4 @@ fn evaluate_simulation(
 
         commands.entity(entity).despawn_recursive();
     }
-
-    // stopwatch.0.pause();
 }

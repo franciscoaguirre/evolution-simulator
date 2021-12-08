@@ -1,9 +1,12 @@
 use bevy::{
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    diagnostic::{FrameTimeDiagnosticsPlugin},
     prelude::*,
     render::camera::OrthographicProjection,
 };
 mod simulation2d;
+
+pub mod utils;
+
 use simulation2d::{plane::create_plane, plugin::SimulationPlugin};
 
 mod genetic_algorithm;
@@ -93,7 +96,6 @@ fn main() {
         .add_plugin(SimulationPlugin)
         .add_plugin(GeneticAlgorithmPlugin)
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(LogDiagnosticsPlugin::default())
         .add_startup_system(setup.system())
         .insert_resource(CameraTransform {
             relative_zoom: 0.0,

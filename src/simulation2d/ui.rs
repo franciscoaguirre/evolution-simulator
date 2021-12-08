@@ -1,10 +1,11 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin}};
 
 use super::resources::{EvaluationStopwatch, FitnessStats, GenerationCount};
 
 struct TimerText;
 struct GenerationText;
 struct FitnessText;
+struct FPSText;
 
 pub struct UIPlugin;
 
@@ -13,7 +14,8 @@ impl Plugin for UIPlugin {
         app.add_startup_system(setup.system())
             .add_system(update_timer_text.system())
             .add_system(update_generation_text.system())
-            .add_system(update_fitness_stats_text.system());
+            .add_system(update_fitness_stats_text.system())
+            .add_system(update_frames_stats.system());
     }
 }
 
@@ -133,7 +135,62 @@ fn setup(
                         })
                         .insert(FitnessText);
                 });
-        });
+            });
+
+        commands
+            .spawn_bundle(NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                    padding: Rect {
+                        left: Val::Px(10.0),
+                        right: Val::Px(10.0),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                material: transparent.clone(),
+                ..Default::default()
+            }).with_children( |parent| {
+                parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            flex_direction: FlexDirection::ColumnReverse,
+                            // justify_content: JustifyContent::FlexStart,
+                            ..Default::default()
+                        },
+                        material: transparent.clone(),
+                        ..Default::default()
+                    }).with_children( |parent| {
+                        parent.spawn_bundle(TextBundle {
+                            text: Text {
+                                sections: vec![
+                                    TextSection {
+                                        value: "FPS: {}\n".to_string(),
+                                        style: TextStyle {
+                                            font: font.clone(),
+                                            font_size: 40.0,
+                                            color: Color::WHITE,
+                                        },
+                                    },
+                                    TextSection {
+                                        value: "FRAME TIME: {}\n".to_string(),
+                                        style: TextStyle {
+                                            font: font.clone(),
+                                            font_size: 40.0,
+                                            color: Color::WHITE,
+                                        },
+                                    },
+                                ],
+                                alignment: TextAlignment {
+                                    horizontal: HorizontalAlign::Left,
+                                    ..Default::default()
+                                },
+                            },
+                            ..Default::default()
+                        }).insert(FPSText);
+                    });
+            });
 }
 
 fn update_generation_text(
@@ -162,5 +219,25 @@ fn update_fitness_stats_text(
         text.sections[0].value = format!("Best: {:.2}\n", fitness_stats.best);
         text.sections[1].value = format!("Worst: {:.2}\n", fitness_stats.worst);
         text.sections[2].value = format!("Average: {:.2}\n", fitness_stats.average);
+    }
+}
+
+fn update_frames_stats(
+    diagnostics: Res<Diagnostics>,
+    mut fps_text: Query<&mut Text, With<FPSText>>,
+
+) {
+    for mut text in fps_text.iter_mut() {
+        if let Some(diagnostic) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+            if let Some(value) = diagnostic.value() {
+                text.sections[0].value = format!("AVG FPS: {:.4}\n", value);
+            }
+        }
+
+        if let Some(diagnostic) = diagnostics.get(FrameTimeDiagnosticsPlugin::FRAME_TIME) {
+            if let Some(value) = diagnostic.value() {
+                text.sections[1].value = format!("AVG FPS: {:.4}\n", value);
+            }
+        }
     }
 }
