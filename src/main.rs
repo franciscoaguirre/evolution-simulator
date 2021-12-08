@@ -1,5 +1,9 @@
-use bevy::{prelude::*, render::camera::OrthographicProjection};
-use bevy_fly_camera::{FlyCameraPlugin};
+use bevy::{
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    prelude::*,
+    render::camera::OrthographicProjection,
+};
+use bevy_fly_camera::FlyCameraPlugin;
 use bevy_rapier2d::prelude::*;
 
 mod simulation2d;
@@ -15,14 +19,12 @@ struct CameraTransform {
 
 struct MainCamera;
 
-fn setup(
-    mut commands: Commands,
-) {
+fn setup(mut commands: Commands) {
     // Camera
     commands
         .spawn_bundle(OrthographicCameraBundle::new_2d())
         .insert(MainCamera);
-        // .insert(FlyCamera2d::default());
+    // .insert(FlyCamera2d::default());
 
     create_plane(&mut commands);
 }
@@ -37,25 +39,30 @@ fn camera_movement(keys: Res<Input<KeyCode>>, mut camera: ResMut<CameraTransform
         1.0
     } else if keys.pressed(KeyCode::N) {
         -1.0
-    } else { 0.0 };
+    } else {
+        0.0
+    };
 
     let horizontal_movement = if keys.pressed(KeyCode::D) {
         0.1
     } else if keys.pressed(KeyCode::A) {
         -0.1
-    } else { 0.0 };
+    } else {
+        0.0
+    };
 
     let vertical_movement = if keys.pressed(KeyCode::W) {
         0.1
     } else if keys.pressed(KeyCode::S) {
         -0.1
-    } else { 0.0 };
+    } else {
+        0.0
+    };
 
     camera.relative_zoom =
         (camera.relative_zoom + delta_zoom * MOUSE_ZOOM_RATIO).clamp(MIN_ZOOM, MAX_ZOOM);
 
     camera.position += Vec2::new(horizontal_movement, vertical_movement) * MOVE_RATIO;
-
 }
 
 fn move_camera(
@@ -71,7 +78,11 @@ fn move_camera(
     for (mut camera, mut transform) in cameras.iter_mut() {
         camera.scale = DEFAULT_ZOOM + camera_transform.relative_zoom;
 
-        transform.translation = Vec3::new(camera_transform.position.x, camera_transform.position.y, 0.0);
+        transform.translation = Vec3::new(
+            camera_transform.position.x,
+            camera_transform.position.y,
+            0.0,
+        );
     }
 }
 
@@ -83,8 +94,13 @@ fn main() {
         .add_plugin(RapierRenderPlugin)
         .add_plugin(SimulationPlugin)
         .add_plugin(GeneticAlgorithmPlugin)
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        .add_plugin(LogDiagnosticsPlugin::default())
         .add_startup_system(setup.system())
-        .insert_resource(CameraTransform { relative_zoom: 0.0, position: Vec2::new(0.0, 0.0) })
+        .insert_resource(CameraTransform {
+            relative_zoom: 0.0,
+            position: Vec2::new(0.0, 0.0),
+        })
         .add_system(camera_movement.system())
         .add_system(move_camera.system())
         .run();

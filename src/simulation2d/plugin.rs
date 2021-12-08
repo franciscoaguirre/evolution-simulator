@@ -33,8 +33,11 @@ impl Plugin for SimulationPlugin {
                     info!("Loaded config from file");
                     x
                 }
-                Err(_) => {
-                    info!("Config file not found or badly formatted, using default config");
+                Err(err) => {
+                    warn!(
+                        "Config file error. {}. Using default config.",
+                        err.code.to_string()
+                    );
                     Config::default()
                 }
             })
@@ -43,7 +46,9 @@ impl Plugin for SimulationPlugin {
             .insert_resource(GenerationCount::default())
             .add_startup_system(apply_config.system())
             .add_system(simulate.system())
-            .add_system(evaluate_simulation.system());
+            .add_system(evaluate_simulation.system())
+            .add_system(restart_stopwatch.system())
+            .add_system(tick_stopwatch.system());
     }
 }
 
@@ -65,10 +70,8 @@ fn apply_config(
 }
 
 fn simulate(
-    mut generation_count: ResMut<GenerationCount>,
     mut creatures_created: ResMut<CreaturesCreated>,
     mut commands: Commands,
-    mut stopwatch: ResMut<EvaluationStopwatch>,
     mut start_evaluating_event: EventReader<StartEvaluatingEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -85,13 +88,29 @@ fn simulate(
 
         creatures_created.0 += 1;
     }
+}
 
+fn restart_stopwatch(
+    mut generation_count: ResMut<GenerationCount>,
+    config: Res<Config>,
+    mut creatures_created: ResMut<CreaturesCreated>,
+    mut stopwatch: ResMut<EvaluationStopwatch>,
+) {
     if creatures_created.0 == config.population_size * 2 {
         stopwatch.0.reset();
         stopwatch.0.unpause();
         generation_count.0 += 1;
+
         creatures_created.0 = 0;
     }
+}
+
+fn tick_stopwatch(
+    time: Res<Time>,
+    mut stopwatch: ResMut<EvaluationStopwatch>,
+    config: Res<Config>,
+) {
+    stopwatch.0.tick(time.delta() * config.time_scale as u32);
 }
 
 /// Calculates creature's position averaging its nodes positions
@@ -114,15 +133,12 @@ pub fn calculate_creatures_position(
 
 fn evaluate_simulation(
     mut commands: Commands,
-    time: Res<Time>,
-    mut stopwatch: ResMut<EvaluationStopwatch>,
+    stopwatch: ResMut<EvaluationStopwatch>,
     mut creatures: Query<(Entity, &mut Creature)>,
     collider_node_positions: Query<(&ColliderPosition, &Parent), With<node::Node>>,
     mut finished_evaluating_events: EventWriter<FinishedEvaluatingEvent>,
     config: Res<Config>,
 ) {
-    stopwatch.0.tick(time.delta() * config.time_scale as u32);
-
     if stopwatch.0.paused() || stopwatch.0.elapsed_secs() <= config.evaluation_time {
         return;
     }
@@ -137,5 +153,5 @@ fn evaluate_simulation(
         commands.entity(entity).despawn_recursive();
     }
 
-    stopwatch.0.pause();
+    // stopwatch.0.pause();
 }

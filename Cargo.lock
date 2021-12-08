@@ -202,7 +202,6 @@ version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6b14f8ba7c373fdf7bd27547bb95f2849b2569bf02bbf3d19ca54e9d692de4f"
 dependencies = [
- "bevy_dylib",
  "bevy_internal",
  "syn",
 ]
@@ -313,15 +312,6 @@ dependencies = [
  "bevy_log",
  "bevy_utils",
  "parking_lot",
-]
-
-[[package]]
-name = "bevy_dylib"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efa62c7c03470969539a07337bf8c5694c0b952678fd081d68b6331842134b85"
-dependencies = [
- "bevy_internal",
 ]
 
 [[package]]
@@ -2134,9 +2124,9 @@ checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
 
 [[package]]
 name = "memoffset"
-version = "0.6.4"
+version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59accc507f1338036a0477ef61afdae33cde60840f4dfe481319ce3ad116ddf9"
+checksum = "5aa361d4faea93603064a027415f07bd8e1d5c88c9fbf68bf56a285428fd79ce"
 dependencies = [
  "autocfg",
 ]

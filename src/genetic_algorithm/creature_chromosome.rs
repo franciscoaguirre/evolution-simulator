@@ -252,8 +252,8 @@ impl Correctable for CreatureChromosome {
 
 impl RandomCreatable for CreatureChromosome {
     fn random() -> Self {
-        let nodes: Vec<NodePhenotype> = (1..8).map(|_| NodePhenotype::random()).collect();
-        let muscles: Vec<MusclePhenotype> = (1..8).map(|_| MusclePhenotype::random()).collect();
+        let nodes: Vec<NodePhenotype> = (0..5).map(|_| NodePhenotype::random()).collect();
+        let muscles: Vec<MusclePhenotype> = (0..5).map(|_| MusclePhenotype::random()).collect();
 
         let mut rng = rand::thread_rng();
         let mut creature = CreatureChromosome {

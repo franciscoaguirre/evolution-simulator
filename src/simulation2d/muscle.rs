@@ -51,6 +51,8 @@ impl Plugin for MusclePlugin {
             .add_plugin(DebugLinesPlugin)
             .add_system(advance_internal_clocks.system())
             .add_system(draw_muscles.system())
+            .add_system(apply_gravity.system())
+            .add_system(apply_friction.system())
             .add_system(apply_forces.system());
     }
 }
@@ -80,7 +82,11 @@ fn draw_muscles(
         let start = nodes.get(muscle.nodes.0).unwrap().0.translation.vector;
         let end = nodes.get(muscle.nodes.1).unwrap().0.translation.vector;
 
-        lines.line(Vec3::new(start.x, start.y, 0.0), Vec3::new(end.x, end.y, 0.0), 0.0);
+        lines.line(
+            Vec3::new(start.x, start.y, 0.0),
+            Vec3::new(end.x, end.y, 0.0),
+            0.0,
+        );
     }
 }
 
@@ -94,15 +100,47 @@ fn get_node_position(
     node_positions.get(node).unwrap().0.translation.vector
 }
 
+fn apply_gravity(
+    time: Res<Time>,
+    mut node_velocities: Query<&mut RigidBodyVelocity, With<node::Node>>,
+    config: Res<Config>,
+) {
+    let delta_time = time.delta_seconds() * config.time_scale;
+
+    let gravity: ColumnMatrix = (Vec2::new(0.0, -0.4) * delta_time).into();
+
+    for mut velocity in node_velocities.iter_mut() {
+        velocity.linvel += gravity;
+    }
+}
+
+fn apply_friction(
+    mut nodes: Query<(&mut RigidBodyVelocity, &ColliderPosition), With<node::Node>>,
+    config: Res<Config>,
+    time: Res<Time>,
+) {
+    let delta_time = time.delta_seconds() * config.time_scale;
+
+    for (mut velocity, position) in nodes.iter_mut() {
+        if position.0.translation.vector.y > 0.25 {
+            continue;
+        }
+
+        let friction: ColumnMatrix = Vec2::new(-velocity.linvel.x * 0.9 * delta_time, 0.0).into();
+        velocity.linvel += friction;
+    }
+}
+
 fn apply_forces(
     time: Res<Time>,
     muscles: Query<(&Muscle, &Parent)>,
-    nodes: Query<&node::Node>,
     node_positions: Query<&ColliderPosition, With<node::Node>>,
     mut node_velocities: Query<&mut RigidBodyVelocity, With<node::Node>>,
     creatures: Query<&Creature>,
     config: Res<Config>,
 ) {
+    let delta_time = time.delta_seconds() * config.time_scale;
+
     for (muscle, parent) in muscles.iter() {
         let creature = creatures.get(parent.0).unwrap();
         let internal_clock_size = creature.chromosome.internal_clock_size;
@@ -133,29 +171,12 @@ fn apply_forces(
         let first_node_strength = muscle.strength * (1.0 / config.air_friction);
         let second_node_strength = muscle.strength * (1.0 / config.air_friction);
 
-        let gravity: ColumnMatrix = (Vec2::new(0.0, -0.4) * time.delta_seconds()).into();
-
         let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
         first_node_velocity.linvel +=
-            second_to_first_direction * force * first_node_strength * time.delta_seconds();
-        first_node_velocity.linvel += gravity;
-
-        let friction: ColumnMatrix = Vec2::new(-first_node_velocity.linvel.x * nodes.get(muscle.nodes.0).unwrap().friction, 0.0).into();
-
-        if first_node_position.y < 0.14 {
-            first_node_velocity.linvel += friction
-        }
+            second_to_first_direction * force * first_node_strength * delta_time;
 
         let mut second_node_velocity = node_velocities.get_mut(muscle.nodes.1).unwrap();
         second_node_velocity.linvel +=
-            first_to_second_direction * force * second_node_strength * time.delta_seconds();
-
-        second_node_velocity.linvel += gravity;
-
-        let friction: ColumnMatrix = Vec2::new(-second_node_velocity.linvel.x * nodes.get(muscle.nodes.1).unwrap().friction, 0.0).into();
-
-        if second_node_position.y < 0.14 {
-            second_node_velocity.linvel += friction
-        }
+            first_to_second_direction * force * second_node_strength * delta_time;
     }
 }
