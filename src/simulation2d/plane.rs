@@ -1,25 +1,20 @@
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
 
 pub fn create_plane(
     commands: &mut Commands,
+    _meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
-    let collider = ColliderBundle {
-        shape: ColliderShape::cuboid(100.0, 0.1),
-        flags: ColliderFlags {
-            collision_groups: InteractionGroups::new(0b01, 0b11),
+    let texture_handle = asset_server.load("ground.png");
+    commands.spawn_bundle(SpriteBundle {
+        material: materials.add(texture_handle.into()),
+        sprite: Sprite {
+            size: Vec2::new(10.0, 0.1),
+            resize_mode: SpriteResizeMode::Manual,
             ..Default::default()
         },
-        material: ColliderMaterial {
-            friction: 800.0,
-            ..Default::default()
-        },
+        transform: Transform::from_translation(Vec3::new(0.0, -0.05, 0.0)),
         ..Default::default()
-    };
-    commands
-        .spawn_bundle(collider)
-        .insert(ColliderDebugRender {
-            color: Color::Rgba { red: 100.0, green: 150.0, blue: 100.0, alpha: 1.0 }
-        })
-        .insert(ColliderPositionSync::Discrete);
+    });
 }

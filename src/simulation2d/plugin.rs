@@ -1,10 +1,7 @@
 use std::fs::File;
 
 use bevy::prelude::*;
-use bevy_rapier2d::{
-    physics::RapierConfiguration,
-    prelude::{ColliderPosition, IntegrationParameters},
-};
+
 use ron::de::from_reader;
 
 use crate::genetic_algorithm::plugin::{FinishedEvaluatingEvent, StartEvaluatingEvent};
@@ -14,6 +11,7 @@ use super::{
     logger::LoggerPlugin,
     muscle::MusclePlugin,
     node,
+    physics::PhysicsPlugin,
     resources::{Config, EvaluationStopwatch, GenerationCount},
     ui::UIPlugin,
 };
@@ -28,6 +26,7 @@ impl Plugin for SimulationPlugin {
         app.add_plugin(UIPlugin)
             .add_plugin(MusclePlugin)
             .add_plugin(LoggerPlugin)
+            .add_plugin(PhysicsPlugin)
             .insert_resource(match load_config_from_file() {
                 Ok(x) => {
                     info!("Loaded config from file");
@@ -44,7 +43,6 @@ impl Plugin for SimulationPlugin {
             .insert_resource(CreaturesCreated::default())
             .insert_resource(EvaluationStopwatch::default())
             .insert_resource(GenerationCount::default())
-            .add_startup_system(apply_config.system())
             .add_system(simulate.system())
             .add_system(evaluate_simulation.system())
             .add_system(restart_stopwatch.system())
@@ -59,22 +57,13 @@ fn load_config_from_file() -> Result<Config, ron::error::Error> {
     Ok(config)
 }
 
-fn apply_config(
-    config: Res<Config>,
-    mut integration_parameters: ResMut<IntegrationParameters>,
-    mut rapier_configuration: ResMut<RapierConfiguration>,
-) {
-    let inv_dt = integration_parameters.inv_dt();
-    integration_parameters.set_inv_dt(inv_dt / config.time_scale);
-    rapier_configuration.gravity = Vec2::new(0.0, config.gravity).into();
-}
-
 fn simulate(
     mut creatures_created: ResMut<CreaturesCreated>,
     mut commands: Commands,
     mut start_evaluating_event: EventReader<StartEvaluatingEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
     config: Res<Config>,
 ) {
     for event in start_evaluating_event.iter() {
@@ -83,6 +72,7 @@ fn simulate(
             event.chromosome.clone(),
             &mut meshes,
             &mut materials,
+            &asset_server,
             config.node_size,
         );
 
@@ -116,17 +106,17 @@ fn tick_stopwatch(
 /// Calculates creature's position averaging its nodes positions
 pub fn calculate_creatures_position(
     entity: Entity,
-    collider_node_positions: &Query<(&ColliderPosition, &Parent), With<node::Node>>,
-) -> Vec2 {
+    collider_node_positions: &Query<(&Transform, &Parent), With<node::Node>>,
+) -> Vec3 {
     let creature_node_count = collider_node_positions
         .iter()
         .filter(|(_, parent)| parent.0 == entity)
         .count();
-    let positions_sum: Vec2 = collider_node_positions
+    let positions_sum: Vec3 = collider_node_positions
         .iter()
         .filter(|(_, parent)| parent.0 == entity)
-        .fold(Vec2::ZERO, |sum, (collider_position, _)| {
-            sum + collider_position.0.translation.vector.into()
+        .fold(Vec3::ZERO, |sum, (collider_position, _)| {
+            sum + collider_position.translation
         });
     positions_sum / creature_node_count as f32
 }
@@ -135,7 +125,7 @@ fn evaluate_simulation(
     mut commands: Commands,
     stopwatch: ResMut<EvaluationStopwatch>,
     mut creatures: Query<(Entity, &mut Creature)>,
-    collider_node_positions: Query<(&ColliderPosition, &Parent), With<node::Node>>,
+    collider_node_positions: Query<(&Transform, &Parent), With<node::Node>>,
     mut finished_evaluating_events: EventWriter<FinishedEvaluatingEvent>,
     config: Res<Config>,
 ) {

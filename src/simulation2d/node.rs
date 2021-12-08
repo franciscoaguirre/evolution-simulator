@@ -1,9 +1,11 @@
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
 
 use crate::genetic_algorithm::node_phenotype::NodePhenotype;
 
+use super::physics::Velocity;
+
 pub struct Node {
+    pub radius: f32,
     pub friction: f32,
 }
 
@@ -11,42 +13,32 @@ pub fn create_node(
     parent: &mut ChildBuilder,
     node_phenotype: &NodePhenotype,
     _meshes: &mut ResMut<Assets<Mesh>>,
-    _materials: &mut ResMut<Assets<StandardMaterial>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+    asset_server: &Res<AssetServer>,
     node_size: f32,
 ) -> Entity {
-    let rigid_body = RigidBodyBundle {
-        position: node_phenotype.position.into(),
-        ccd: RigidBodyCcd {
-            ccd_enabled: true,
-            ..Default::default()
-        },
-        ..Default::default()
-    };
-    let collider = ColliderBundle {
-        position: node_phenotype.position.into(),
-        shape: ColliderShape::ball(node_size),
-        flags: ColliderFlags {
-            collision_groups: InteractionGroups::new(0b10, 0b01),
-            ..Default::default()
-        },
-        ..Default::default()
-    };
+    let texture_handle = asset_server.load("circle.png");
 
     parent
         .spawn()
         .insert(Node {
+            radius: node_size,
             friction: node_phenotype.friction,
         })
-        .insert_bundle(rigid_body)
-        .insert_bundle(collider)
-        .insert(ColliderDebugRender {
-            color: Color::Rgba {
-                red: 255.0,
-                green: 0.0,
-                blue: 0.0,
-                alpha: 1.0,
+        .insert(Velocity(Vec3::default()))
+        .insert_bundle(SpriteBundle {
+            material: materials.add(texture_handle.into()),
+            sprite: Sprite {
+                size: Vec2::new(node_size / 2.0, node_size / 2.0),
+                resize_mode: SpriteResizeMode::Manual,
+                ..Default::default()
             },
+            transform: Transform::from_translation(Vec3::new(
+                node_phenotype.position.x,
+                node_phenotype.position.y,
+                0.0,
+            )),
+            ..Default::default()
         })
-        .insert(ColliderPositionSync::Discrete)
         .id()
 }

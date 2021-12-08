@@ -3,9 +3,6 @@ use bevy::{
     prelude::*,
     render::camera::OrthographicProjection,
 };
-use bevy_fly_camera::FlyCameraPlugin;
-use bevy_rapier2d::prelude::*;
-
 mod simulation2d;
 use simulation2d::{plane::create_plane, plugin::SimulationPlugin};
 
@@ -19,14 +16,18 @@ struct CameraTransform {
 
 struct MainCamera;
 
-fn setup(mut commands: Commands) {
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
+) {
     // Camera
     commands
         .spawn_bundle(OrthographicCameraBundle::new_2d())
         .insert(MainCamera);
-    // .insert(FlyCamera2d::default());
 
-    create_plane(&mut commands);
+    create_plane(&mut commands, &mut meshes, &mut materials, asset_server);
 }
 
 fn camera_movement(keys: Res<Input<KeyCode>>, mut camera: ResMut<CameraTransform>) {
@@ -89,9 +90,6 @@ fn move_camera(
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
-        .add_plugin(FlyCameraPlugin)
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugin(RapierRenderPlugin)
         .add_plugin(SimulationPlugin)
         .add_plugin(GeneticAlgorithmPlugin)
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
