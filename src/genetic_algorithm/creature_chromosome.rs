@@ -156,9 +156,8 @@ impl CreatureChromosome {
             closest_node_index = *other_node;
         }
 
-        let mut muscle = self.muscles.last().unwrap().clone();
-        muscle.nodes.0 = node_index;
-        muscle.nodes.1 = closest_node_index;
+        let mut muscle = MusclePhenotype::random();
+        muscle.nodes = (node_index, closest_node_index);
 
         connected.push(node_index);
         self.muscles.push(muscle);
