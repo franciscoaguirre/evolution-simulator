@@ -15,14 +15,12 @@ pub enum PhysicsSystem {
     ApplyVelocity,
 }
 
-const FIXED_TIME_STEP: f32 = 0.05;
+const FIXED_TIME_STEP: f32 = 0.005;
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_stage_after(
-            CoreStage::Update,
-            FixedUpdateStage,
-            SystemStage::parallel()
+        app.add_system_set(
+            SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64))
                 .with_system(apply_gravity.system().label(PhysicsSystem::UpdateVelocity))
                 .with_system(apply_friction.system().label(PhysicsSystem::UpdateVelocity))
@@ -37,6 +35,8 @@ impl Plugin for PhysicsPlugin {
 }
 
 fn apply_gravity(mut velocities: Query<&mut Velocity>, config: Res<Config>) {
+    let my_span = info_span!("system", name = "apply_gravity");
+    let _guard = my_span.enter();
     let delta_time = FIXED_TIME_STEP * config.time_scale;
 
     let gravity = Vec3::new(0.0, -config.gravity, 0.0) * delta_time.powf(2.0);
@@ -48,6 +48,9 @@ fn apply_gravity(mut velocities: Query<&mut Velocity>, config: Res<Config>) {
 
 // TODO: Make friction a parameter of nodes and apply here
 fn apply_friction(mut velocity_nodes: Query<(&mut Velocity, &Transform)>, config: Res<Config>) {
+    let my_span = info_span!("system", name = "apply_friction");
+    let _guard = my_span.enter();
+
     let delta_time = FIXED_TIME_STEP * config.time_scale;
 
     for (mut velocity, transform) in velocity_nodes.iter_mut() {
@@ -61,6 +64,9 @@ fn apply_friction(mut velocity_nodes: Query<(&mut Velocity, &Transform)>, config
 }
 
 fn apply_velocities(mut velocities: Query<(&mut Velocity, &mut Transform)>, config: Res<Config>) {
+    let my_span = info_span!("system", name = "apply_velocities");
+    let _guard = my_span.enter();
+
     let delta_time = FIXED_TIME_STEP * config.time_scale;
 
     for (mut velocity, mut transform) in velocities.iter_mut() {

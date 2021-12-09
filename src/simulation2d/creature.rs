@@ -6,7 +6,9 @@ use crate::genetic_algorithm::creature_chromosome::CreatureChromosome;
 use super::muscle;
 use super::node;
 
+#[derive(Default)]
 pub struct Creature {
+    pub fitness: f32,
     pub chromosome: CreatureChromosome,
     pub internal_clock: Stopwatch,
 }
@@ -23,7 +25,6 @@ pub struct Creature {
 //     muscles: Vec::<muscle::MuscleBundle>,
 // }
 
-
 pub fn create_creature(
     commands: &mut Commands,
     creature_chromosome: CreatureChromosome,
@@ -39,6 +40,7 @@ pub fn create_creature(
         .insert(Creature {
             chromosome: creature_chromosome.clone(),
             internal_clock: Stopwatch::new(),
+            ..Default::default()
         })
         .with_children(|parent| {
             for node in creature_chromosome.nodes.iter() {

@@ -7,9 +7,9 @@ use super::creature::Creature;
 use super::node;
 use super::physics::Velocity;
 use super::resources::Config;
-use crate::utils::time_log::ScopeCall;
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
 use crate::utils::time_log::log_time;
+use crate::utils::time_log::ScopeCall;
 
 pub struct Muscle {
     contracted_time: f32,
@@ -54,7 +54,9 @@ pub fn create_muscle_bundle(
     muscle_phenotype: &MusclePhenotype,
     nodes: &[Entity],
 ) -> MuscleBundle {
-    MuscleBundle { muscle: Muscle::from_phenotype(muscle_phenotype, nodes) }
+    MuscleBundle {
+        muscle: Muscle::from_phenotype(muscle_phenotype, nodes),
+    }
 }
 
 pub struct MusclePlugin;
@@ -75,6 +77,9 @@ fn advance_internal_clocks(
     time: Res<Time>,
     config: Res<Config>,
 ) {
+    let span = info_span!("system", name = "advance_internal_clocks");
+    let _guard = span.enter();
+
     for mut creature in creatures.iter_mut() {
         creature
             .internal_clock
@@ -91,6 +96,9 @@ fn draw_muscles(
     nodes: Query<&Transform, With<node::Node>>,
     mut lines: ResMut<DebugLines>,
 ) {
+    let span = info_span!("system", name = "draw_muscles");
+    let _guard = span.enter();
+
     for muscle in muscles.iter() {
         let start = nodes.get(muscle.nodes.0).unwrap().translation;
         let end = nodes.get(muscle.nodes.1).unwrap().translation;
@@ -107,7 +115,8 @@ fn apply_forces(
     creatures: Query<&Creature>,
     config: Res<Config>,
 ) {
-    // log_time!();
+    let span = info_span!("system", name = "apply_forces");
+    let _guard = span.enter();
 
     let delta_time = time.delta_seconds() * config.time_scale;
 

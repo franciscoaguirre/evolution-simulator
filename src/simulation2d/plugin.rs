@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use ron::de::from_reader;
 
-use crate::genetic_algorithm::plugin::{FinishedEvaluatingEvent, StartEvaluatingEvent, CreatureGA};
+use crate::genetic_algorithm::plugin::{CreatureGA, FinishedEvaluatingEvent, StartEvaluatingEvent};
 
 use super::{
     creature::{create_creature, Creature},
@@ -67,6 +67,9 @@ fn simulate(
     asset_server: Res<AssetServer>,
     config: Res<Config>,
 ) {
+    let span = info_span!("system", name = "simulate");
+    let _guard = span.enter();
+
     for _event in start_evaluating_events.iter() {
         for chromosome in ga.population.iter().chain(ga.offspring_population.iter()) {
             create_creature(
@@ -88,6 +91,9 @@ fn restart_stopwatch(
     mut creatures_created: ResMut<CreaturesCreated>,
     mut stopwatch: ResMut<EvaluationStopwatch>,
 ) {
+    let span = info_span!("system", name = "restart_stopwatch");
+    let _guard = span.enter();
+
     if creatures_created.0 == config.population_size * 2 {
         stopwatch.0.reset();
         stopwatch.0.unpause();
@@ -102,6 +108,9 @@ fn tick_stopwatch(
     mut stopwatch: ResMut<EvaluationStopwatch>,
     config: Res<Config>,
 ) {
+    let span = info_span!("system", name = "tick_stopwatch");
+    let _guard = span.enter();
+
     stopwatch.0.tick(time.delta() * config.time_scale as u32);
 }
 
@@ -110,15 +119,14 @@ pub fn calculate_creatures_position(
     entity: Entity,
     collider_node_positions: &Query<(&Transform, &Parent), With<node::Node>>,
 ) -> Vec3 {
-    let creature_node_count = collider_node_positions
+    let span = info_span!("system", name = "calculate_creatures_position");
+    let _guard = span.enter();
+
+    let (creature_node_count, positions_sum) = collider_node_positions
         .iter()
         .filter(|(_, parent)| parent.0 == entity)
-        .count();
-    let positions_sum: Vec3 = collider_node_positions
-        .iter()
-        .filter(|(_, parent)| parent.0 == entity)
-        .fold(Vec3::ZERO, |sum, (collider_position, _)| {
-            sum + collider_position.translation
+        .fold((0, Vec3::ZERO), |(count, sum), (collider_position, _)| {
+            (count + 1, sum + collider_position.translation)
         });
     positions_sum / creature_node_count as f32
 }
@@ -131,6 +139,9 @@ fn evaluate_simulation(
     mut finished_evaluating_events: EventWriter<FinishedEvaluatingEvent>,
     config: Res<Config>,
 ) {
+    let span = info_span!("system", name = "evaluate_simulation");
+    let _guard = span.enter();
+
     if stopwatch.0.paused() || stopwatch.0.elapsed_secs() <= config.evaluation_time {
         return;
     }
