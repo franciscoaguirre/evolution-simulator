@@ -1,15 +1,15 @@
-use bevy::core::Stopwatch;
+use std::time::Duration;
+
+use bevy::core::FixedTimestep;
 use bevy::prelude::*;
 use bevy_prototype_debug_lines::*;
-use std::time::Instant;
 
+use super::constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS};
 use super::creature::Creature;
 use super::node;
 use super::physics::Velocity;
 use super::resources::Config;
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
-use crate::utils::time_log::log_time;
-use crate::utils::time_log::ScopeCall;
 
 pub struct Muscle {
     contracted_time: f32,
@@ -63,12 +63,14 @@ pub struct MusclePlugin;
 
 impl Plugin for MusclePlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.insert_resource(Stopwatch::new())
-            .insert_resource(Timer::from_seconds(2.0, false))
-            .add_plugin(DebugLinesPlugin)
-            .add_system(advance_internal_clocks.system())
+        app.add_plugin(DebugLinesPlugin)
             .add_system(draw_muscles.system())
-            .add_system(apply_forces.system());
+            .add_system_set(
+                SystemSet::new()
+                    .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / 5.0))
+                    .with_system(advance_internal_clocks.system())
+                    .with_system(apply_forces.system()),
+            );
     }
 }
 
@@ -83,7 +85,7 @@ fn advance_internal_clocks(
     for mut creature in creatures.iter_mut() {
         creature
             .internal_clock
-            .tick(time.delta() * config.time_scale as u32);
+            .tick(Duration::from_nanos(FIXED_TIME_STEP_NANOSECONDS));
 
         if creature.internal_clock.elapsed_secs() >= creature.chromosome.internal_clock_size {
             creature.internal_clock.reset();
@@ -118,7 +120,7 @@ fn apply_forces(
     let span = info_span!("system", name = "apply_forces");
     let _guard = span.enter();
 
-    let delta_time = time.delta_seconds() * config.time_scale;
+    let delta_time = FIXED_TIME_STEP;
 
     for (muscle, parent) in muscles.iter() {
         let creature = creatures.get(parent.0).unwrap();

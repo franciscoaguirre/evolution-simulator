@@ -1,6 +1,6 @@
 use bevy::{core::FixedTimestep, prelude::*};
 
-use super::resources::Config;
+use super::{constants::FIXED_TIME_STEP, resources::Config};
 
 pub struct Velocity(pub Vec3);
 
@@ -15,13 +15,11 @@ pub enum PhysicsSystem {
     ApplyVelocity,
 }
 
-const FIXED_TIME_STEP: f32 = 0.005;
-
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(
             SystemSet::new()
-                .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64))
+                .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / 5.0))
                 .with_system(apply_gravity.system().label(PhysicsSystem::UpdateVelocity))
                 .with_system(apply_friction.system().label(PhysicsSystem::UpdateVelocity))
                 .with_system(
@@ -37,7 +35,7 @@ impl Plugin for PhysicsPlugin {
 fn apply_gravity(mut velocities: Query<&mut Velocity>, config: Res<Config>) {
     let my_span = info_span!("system", name = "apply_gravity");
     let _guard = my_span.enter();
-    let delta_time = FIXED_TIME_STEP * config.time_scale;
+    let delta_time = FIXED_TIME_STEP;
 
     let gravity = Vec3::new(0.0, -config.gravity, 0.0) * delta_time.powf(2.0);
 

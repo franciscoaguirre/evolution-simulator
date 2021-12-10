@@ -1,11 +1,8 @@
 use bevy::{
-    diagnostic::{FrameTimeDiagnosticsPlugin},
-    prelude::*,
-    render::camera::OrthographicProjection, input,
+    diagnostic::FrameTimeDiagnosticsPlugin, input, prelude::*,
+    render::camera::OrthographicProjection,
 };
 mod simulation2d;
-
-pub mod utils;
 
 use simulation2d::{plane::create_plane, plugin::SimulationPlugin};
 

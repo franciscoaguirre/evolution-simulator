@@ -4,9 +4,18 @@ use super::{creature, node, plugin::calculate_creatures_position, resources::Fit
 
 pub struct LoggerPlugin;
 
+struct UpdateStatsTimer(Timer);
+
+impl UpdateStatsTimer {
+    fn new() -> UpdateStatsTimer {
+        UpdateStatsTimer(Timer::from_seconds(1.0, true))
+    }
+}
+
 impl Plugin for LoggerPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.insert_resource(FitnessStats::default())
+            .insert_resource(UpdateStatsTimer::new())
             .add_system(calculate_creatures_positions.system())
             .add_system(log_fitness.system());
     }
@@ -16,23 +25,27 @@ fn calculate_creatures_positions(
     pool: Res<ComputeTaskPool>,
     mut creatures: Query<(Entity, &mut creature::Creature)>,
     collider_node_positions: Query<(&Transform, &Parent), With<node::Node>>,
+    time: Res<Time>,
+    mut timer: ResMut<UpdateStatsTimer>,
 ) {
-    let span = info_span!("system", name = "log_nodes_fitness");
-    let _guard = span.enter();
+    if timer.0.tick(time.delta()).just_finished() {
+        let span = info_span!("system", name = "log_nodes_fitness");
+        let _guard = span.enter();
 
-    creatures.par_for_each_mut(&pool, 32, |(entity, mut creature)| {
-        let span_for = info_span!("for", name = "processing creature");
-        let _guard = span_for.enter();
-        let position = calculate_creatures_position(entity, &collider_node_positions);
+        creatures.par_for_each_mut(&pool, 32, |(entity, mut creature)| {
+            let span_for = info_span!("for", name = "processing creature");
+            let _guard = span_for.enter();
+            let position = calculate_creatures_position(entity, &collider_node_positions);
 
-        let fitness = position.length();
+            let fitness = position.length();
 
-        if fitness.is_nan() || fitness.is_infinite() {
-            return;
-        }
+            if fitness.is_nan() || fitness.is_infinite() {
+                return;
+            }
 
-        creature.fitness = fitness;
-    });
+            creature.fitness = fitness;
+        });
+    }
 }
 
 fn log_fitness(creatures: Query<&creature::Creature>, mut fitness_stats: ResMut<FitnessStats>) {

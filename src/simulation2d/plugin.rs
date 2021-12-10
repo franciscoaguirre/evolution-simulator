@@ -1,12 +1,13 @@
-use std::fs::File;
+use std::{fs::File, time::Duration};
 
-use bevy::prelude::*;
+use bevy::{core::FixedTimestep, prelude::*};
 
 use ron::de::from_reader;
 
 use crate::genetic_algorithm::plugin::{CreatureGA, FinishedEvaluatingEvent, StartEvaluatingEvent};
 
 use super::{
+    constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS},
     creature::{create_creature, Creature},
     logger::LoggerPlugin,
     muscle::MusclePlugin,
@@ -46,7 +47,11 @@ impl Plugin for SimulationPlugin {
             .add_system(simulate.system())
             .add_system(evaluate_simulation.system())
             .add_system(restart_stopwatch.system())
-            .add_system(tick_stopwatch.system());
+            .add_system_set(
+                SystemSet::new()
+                    .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / 5.0))
+                    .with_system(tick_stopwatch.system()),
+            );
     }
 }
 
@@ -111,7 +116,9 @@ fn tick_stopwatch(
     let span = info_span!("system", name = "tick_stopwatch");
     let _guard = span.enter();
 
-    stopwatch.0.tick(time.delta() * config.time_scale as u32);
+    stopwatch
+        .0
+        .tick(Duration::from_nanos(FIXED_TIME_STEP_NANOSECONDS));
 }
 
 /// Calculates creature's position averaging its nodes positions
@@ -119,7 +126,7 @@ pub fn calculate_creatures_position(
     entity: Entity,
     collider_node_positions: &Query<(&Transform, &Parent), With<node::Node>>,
 ) -> Vec3 {
-    let span = info_span!("system", name = "calculate_creatures_position");
+    let span = info_span!("helper", name = "calculate_creatures_position");
     let _guard = span.enter();
 
     let (creature_node_count, positions_sum) = collider_node_positions
@@ -148,7 +155,7 @@ fn evaluate_simulation(
 
     for (entity, mut creature) in creatures.iter_mut() {
         let position = calculate_creatures_position(entity, &collider_node_positions);
-        creature.chromosome.fitness = position.length();
+        creature.chromosome.fitness = position.x.abs();
         finished_evaluating_events.send(FinishedEvaluatingEvent {
             chromosome: creature.chromosome.clone(),
         });

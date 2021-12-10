@@ -1,3 +1,4 @@
+pub mod constants;
 pub mod creature;
 pub mod logger;
 pub mod muscle;
