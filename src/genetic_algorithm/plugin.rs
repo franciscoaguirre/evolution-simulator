@@ -8,9 +8,6 @@ pub struct GeneticAlgorithmPlugin;
 
 pub struct StartEvaluatingEvent;
 
-pub struct WriteResultsEvent;
-
-
 pub struct FinishedEvaluatingEvent {
     pub chromosome: CreatureChromosome,
 }
