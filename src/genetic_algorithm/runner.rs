@@ -1,4 +1,7 @@
+use std::{fs::File, io::Write};
+
 use super::operations::Individual;
+use ron::ser::{to_string_pretty, PrettyConfig};
 
 #[derive(Default)]
 pub struct Algorithm<T: Individual> {
@@ -57,5 +60,36 @@ impl<T: Individual> Algorithm<T> {
 
     pub fn all_have_finished_evaluating(&self, population_size: usize) -> bool {
         self.new_population.len() == population_size * 2
+    }
+
+    pub fn save_results(&self, generation_count: usize) {
+        let pretty_config = PrettyConfig::default();
+        let best = to_string_pretty(
+            self.population.iter().max_by(|x, y| {
+                x.get_fitness().partial_cmp(&y.get_fitness()).unwrap()
+            }).unwrap(),
+            pretty_config.clone()
+        ).unwrap();
+        let worst = to_string_pretty(
+            self.population.iter().min_by(|x, y| {
+                x.get_fitness().partial_cmp(&y.get_fitness()).unwrap()
+            }).unwrap(),
+            pretty_config.clone()
+        ).unwrap();
+        let mean = to_string_pretty(
+            &self.population[self.population.len() / 2],
+            pretty_config.clone()
+        ).unwrap();
+
+
+        let mut buffer = File::create(format!("results_generation_{}.ron", generation_count)).unwrap();
+        buffer.write(b"Best: ").unwrap();
+        buffer.write(best.as_bytes()).unwrap();
+        buffer.write(b"\n").unwrap();
+        buffer.write(b"Worst: ").unwrap();
+        buffer.write(worst.as_bytes()).unwrap();
+        buffer.write(b"\n").unwrap();
+        buffer.write(b"Mean: ").unwrap();
+        buffer.write(mean.as_bytes()).unwrap();
     }
 }

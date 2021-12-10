@@ -109,9 +109,7 @@ fn restart_stopwatch(
 }
 
 fn tick_stopwatch(
-    time: Res<Time>,
     mut stopwatch: ResMut<EvaluationStopwatch>,
-    config: Res<Config>,
 ) {
     let span = info_span!("system", name = "tick_stopwatch");
     let _guard = span.enter();

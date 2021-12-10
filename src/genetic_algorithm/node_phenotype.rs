@@ -3,9 +3,10 @@ use super::{
     operations::{Crossable, Mutable, RandomCreatable},
 };
 use bevy::prelude::*;
+use serde::{Serialize, Deserialize};
 
 /// Represents the characteristics of a Node
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq)]
 pub struct NodePhenotype {
     /// Initial node position in creature
     pub position: Vec2,

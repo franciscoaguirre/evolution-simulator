@@ -3,9 +3,10 @@ use super::{
     operations::{Crossable, Mutable, RandomCreatable},
 };
 use rand::Rng;
+use serde::{Serialize, Deserialize};
 
 /// Represents the characteristics of a Muscle
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct MusclePhenotype {
     /// Percentage of time of the creature's internal clock
     /// the muscle is contracting. The rest of the time

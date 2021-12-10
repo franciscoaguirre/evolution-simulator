@@ -8,6 +8,8 @@ pub struct GeneticAlgorithmPlugin;
 
 pub struct StartEvaluatingEvent;
 
+pub struct WriteResultsEvent;
+
 
 pub struct FinishedEvaluatingEvent {
     pub chromosome: CreatureChromosome,
@@ -47,6 +49,8 @@ fn genetic_algorithm_system(
     generation_count: Res<GenerationCount>,
 ) {
     if ga.all_have_finished_evaluating(config.population_size) {
+        ga.save_results(generation_count.0);
+
         ga.replacement();
         ga.selection(config.population_size);
         ga.reproduction();

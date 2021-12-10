@@ -1,4 +1,5 @@
 use rand::Rng;
+use serde::{Serialize, Deserialize};
 
 use crate::genetic_algorithm::*;
 
@@ -11,7 +12,7 @@ use super::{
     },
 };
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct CreatureChromosome {
     /// The internal clock goes from 0 to this value
     pub internal_clock_size: f32,

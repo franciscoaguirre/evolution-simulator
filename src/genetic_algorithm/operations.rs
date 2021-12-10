@@ -1,3 +1,5 @@
+use serde::{Serialize};
+
 pub trait Breedable {
     /// Breed two parents to produce two children.
     fn breed(&self, other: &Self) -> (Self, Self)
@@ -37,6 +39,6 @@ pub trait Evaluatable {
 }
 
 pub trait Individual:
-    Breedable + Mutable + Correctable + RandomCreatable + Evaluatable + Clone
+    Breedable + Mutable + Correctable + RandomCreatable + Evaluatable + Clone + Serialize
 {
 }

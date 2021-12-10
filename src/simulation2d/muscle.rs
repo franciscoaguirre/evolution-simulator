@@ -49,16 +49,6 @@ pub fn create_muscle(
         .insert(Muscle::from_phenotype(muscle_phenotype, nodes));
 }
 
-pub fn create_muscle_bundle(
-    parent: &mut ChildBuilder,
-    muscle_phenotype: &MusclePhenotype,
-    nodes: &[Entity],
-) -> MuscleBundle {
-    MuscleBundle {
-        muscle: Muscle::from_phenotype(muscle_phenotype, nodes),
-    }
-}
-
 pub struct MusclePlugin;
 
 impl Plugin for MusclePlugin {
@@ -76,8 +66,6 @@ impl Plugin for MusclePlugin {
 
 fn advance_internal_clocks(
     mut creatures: Query<&mut Creature>,
-    time: Res<Time>,
-    config: Res<Config>,
 ) {
     let span = info_span!("system", name = "advance_internal_clocks");
     let _guard = span.enter();
@@ -110,7 +98,6 @@ fn draw_muscles(
 }
 
 fn apply_forces(
-    time: Res<Time>,
     muscles: Query<(&Muscle, &Parent)>,
     node_positions: Query<&Transform, With<node::Node>>,
     mut node_velocities: Query<&mut Velocity, With<node::Node>>,
