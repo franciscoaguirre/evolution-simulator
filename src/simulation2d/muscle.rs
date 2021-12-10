@@ -64,9 +64,7 @@ impl Plugin for MusclePlugin {
     }
 }
 
-fn advance_internal_clocks(
-    mut creatures: Query<&mut Creature>,
-) {
+fn advance_internal_clocks(mut creatures: Query<&mut Creature>) {
     let span = info_span!("system", name = "advance_internal_clocks");
     let _guard = span.enter();
 
