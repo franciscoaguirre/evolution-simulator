@@ -1,6 +1,10 @@
 use bevy::{core::FixedTimestep, prelude::*};
 
-use super::{constants::FIXED_TIME_STEP, node, resources::Config};
+use super::{
+    constants::{FIXED_TIME_STEP, TIME_SCALE},
+    node,
+    resources::Config,
+};
 
 pub struct Velocity(pub Vec3);
 
@@ -19,7 +23,7 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(
             SystemSet::new()
-                .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / 5.0))
+                .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / TIME_SCALE))
                 .with_system(apply_gravity.system().label(PhysicsSystem::UpdateVelocity))
                 .with_system(apply_friction.system().label(PhysicsSystem::UpdateVelocity))
                 .with_system(
@@ -51,7 +55,7 @@ fn apply_friction(
     let my_span = info_span!("system", name = "apply_friction");
     let _guard = my_span.enter();
 
-    let delta_time = FIXED_TIME_STEP * config.time_scale;
+    let delta_time = FIXED_TIME_STEP;
 
     for (mut velocity, transform, node) in velocity_nodes.iter_mut() {
         if transform.translation.y > 0.01 {
@@ -67,7 +71,7 @@ fn apply_velocities(mut velocities: Query<(&mut Velocity, &mut Transform)>, conf
     let my_span = info_span!("system", name = "apply_velocities");
     let _guard = my_span.enter();
 
-    let delta_time = FIXED_TIME_STEP * config.time_scale;
+    let delta_time = FIXED_TIME_STEP;
 
     for (mut velocity, mut transform) in velocities.iter_mut() {
         transform.translation.x += velocity.0.x * delta_time;

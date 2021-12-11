@@ -9,9 +9,8 @@ use crate::genetic_algorithm::plugin::{
 };
 
 use super::{
-    constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS},
+    constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS, TIME_SCALE},
     creature::{create_creature, Creature},
-    logger::LoggerPlugin,
     muscle::MusclePlugin,
     node,
     physics::PhysicsPlugin,
@@ -25,7 +24,6 @@ impl Plugin for SimulationPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_plugin(UIPlugin)
             .add_plugin(MusclePlugin)
-            .add_plugin(LoggerPlugin)
             .add_plugin(PhysicsPlugin)
             .insert_resource(match load_config_from_file() {
                 Ok(x) => {
@@ -46,7 +44,7 @@ impl Plugin for SimulationPlugin {
             .add_system(evaluate_simulation.system())
             .add_system_set(
                 SystemSet::new()
-                    .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / 5.0))
+                    .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / TIME_SCALE))
                     .with_system(tick_stopwatch.system()),
             );
     }
@@ -91,7 +89,6 @@ fn simulate(
 
         stopwatch.0.reset();
         stopwatch.0.unpause();
-        dbg!("RESTARTING STOPWATCH");
     }
 }
 
