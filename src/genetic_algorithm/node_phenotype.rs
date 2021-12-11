@@ -3,7 +3,7 @@ use super::{
     operations::{Crossable, Mutable, RandomCreatable},
 };
 use bevy::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Represents the characteristics of a Node
 #[derive(Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq)]
@@ -13,6 +13,9 @@ pub struct NodePhenotype {
     /// Resistance of node to movement
     pub friction: f32,
 }
+
+const MAX_FRICTION: f32 = 1.0;
+const MIN_FRICTION: f32 = 0.3;
 
 impl Crossable for NodePhenotype {
     fn cross(&self, other: &Self) -> Self {
@@ -40,7 +43,9 @@ impl Mutable for NodePhenotype {
         position.y = position.y.max(0.04);
 
         if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
-            friction += (rand::random::<f32>() + 0.1) * mutation_rate;
+            friction += ((rand::random::<f32>() * 2.0 - 1.0) * 0.1) * mutation_rate;
+
+            friction = friction.clamp(MIN_FRICTION, MAX_FRICTION);
         }
 
         NodePhenotype { position, friction }
@@ -54,7 +59,7 @@ impl RandomCreatable for NodePhenotype {
                 (rand::random::<f32>() * 2.0 - 1.0) * 0.4,
                 rand::random::<f32>() + 0.04 * 0.4,
             ),
-            friction: rand::random::<f32>(),
+            friction: rand::random::<f32>().clamp(MIN_FRICTION, MAX_FRICTION),
         }
     }
 }

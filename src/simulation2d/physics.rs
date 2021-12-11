@@ -1,6 +1,6 @@
 use bevy::{core::FixedTimestep, prelude::*};
 
-use super::{constants::FIXED_TIME_STEP, resources::Config};
+use super::{constants::FIXED_TIME_STEP, node, resources::Config};
 
 pub struct Velocity(pub Vec3);
 
@@ -44,19 +44,21 @@ fn apply_gravity(mut velocities: Query<&mut Velocity>, config: Res<Config>) {
     }
 }
 
-// TODO: Make friction a parameter of nodes and apply here
-fn apply_friction(mut velocity_nodes: Query<(&mut Velocity, &Transform)>, config: Res<Config>) {
+fn apply_friction(
+    mut velocity_nodes: Query<(&mut Velocity, &Transform, &node::Node)>,
+    config: Res<Config>,
+) {
     let my_span = info_span!("system", name = "apply_friction");
     let _guard = my_span.enter();
 
     let delta_time = FIXED_TIME_STEP * config.time_scale;
 
-    for (mut velocity, transform) in velocity_nodes.iter_mut() {
+    for (mut velocity, transform, node) in velocity_nodes.iter_mut() {
         if transform.translation.y > 0.01 {
             continue;
         }
 
-        let friction = Vec3::new(-velocity.0.x * 0.9 * delta_time, 0.0, 0.0);
+        let friction = Vec3::new(-velocity.0.x * node.friction * delta_time, 0.0, 0.0);
         velocity.0 += friction;
     }
 }
