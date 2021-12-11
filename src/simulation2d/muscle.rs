@@ -4,7 +4,7 @@ use bevy::core::FixedTimestep;
 use bevy::prelude::*;
 use bevy_prototype_debug_lines::*;
 
-use super::constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS};
+use super::constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS, TIME_SCALE};
 use super::creature::Creature;
 use super::node;
 use super::physics::Velocity;
@@ -57,7 +57,7 @@ impl Plugin for MusclePlugin {
             .add_system(draw_muscles.system())
             .add_system_set(
                 SystemSet::new()
-                    .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / 5.0))
+                    .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / TIME_SCALE))
                     .with_system(advance_internal_clocks.system())
                     .with_system(apply_forces.system()),
             );
@@ -134,16 +134,13 @@ fn apply_forces(
         let force =
             ((muscle_length - target_length) / muscle_length.max(target_length)).powf(2.0) * sign;
 
-        let first_node_strength = muscle.strength * (1.0 / config.air_friction);
-        let second_node_strength = muscle.strength * (1.0 / config.air_friction);
+        let strength = muscle.strength * (1.0 / config.air_friction);
 
         let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
-        first_node_velocity.0 +=
-            second_to_first_direction * force * first_node_strength * delta_time;
+        first_node_velocity.0 += second_to_first_direction * force * strength * delta_time;
 
         let mut second_node_velocity = node_velocities.get_mut(muscle.nodes.1).unwrap();
 
-        second_node_velocity.0 +=
-            first_to_second_direction * force * second_node_strength * delta_time;
+        second_node_velocity.0 += first_to_second_direction * force * strength * delta_time;
     }
 }

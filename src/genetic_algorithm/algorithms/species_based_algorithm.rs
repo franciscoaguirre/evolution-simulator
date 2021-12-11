@@ -168,6 +168,17 @@ impl<T: Individual + Selective> Runnable<T> for SpeciesBasedAlgorithm<T> {
         let median =
             to_string_pretty(&population[population.len() / 2], pretty_config.clone()).unwrap();
 
+        let mean =
+            population.iter().map(|x| x.get_fitness()).sum::<f32>() / population.len() as f32;
+        let std_dev = population
+            .iter()
+            .map(|x| (x.get_fitness() - mean).powi(2))
+            .sum::<f32>()
+            / population.len() as f32;
+
+        let mean_string = format!("{:.2}", mean);
+        let std_dev_string = format!("{:.2}", std_dev);
+
         let buffer = File::create(format!("results_generation_{}.ron", generation_count)).unwrap();
         let mut stream = BufWriter::new(buffer);
 
@@ -179,7 +190,13 @@ impl<T: Individual + Selective> Runnable<T> for SpeciesBasedAlgorithm<T> {
         stream.write(b"\n").unwrap();
         stream.write(b"Median: ").unwrap();
         stream.write(median.as_bytes()).unwrap();
-
+        stream.write(b"\n").unwrap();
+        stream.write(b"Mean: ").unwrap();
+        stream.write(mean_string.as_bytes()).unwrap();
+        stream.write(b"\n").unwrap();
+        stream.write(b"Std. Dev.: ").unwrap();
+        stream.write(std_dev_string.as_bytes()).unwrap();
+        stream.write(b"\n").unwrap();
         stream.flush().unwrap();
     }
 }
