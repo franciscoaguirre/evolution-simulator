@@ -2,7 +2,6 @@ use bevy::prelude::*;
 
 pub fn create_plane(
     commands: &mut Commands,
-    _meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
 ) {

@@ -3,12 +3,14 @@ use std::time::Duration;
 use bevy::core::FixedTimestep;
 use bevy::prelude::*;
 use bevy_prototype_debug_lines::*;
+use structopt::StructOpt;
 
-use super::constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS, TIME_SCALE};
+use super::constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS};
 use super::creature::Creature;
 use super::node;
 use super::physics::Velocity;
-use super::resources::Config;
+use crate::arguments::Opt;
+use crate::config::CONFIG;
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
 
 pub struct Muscle {
@@ -53,14 +55,21 @@ pub struct MusclePlugin;
 
 impl Plugin for MusclePlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(DebugLinesPlugin)
-            .add_system(draw_muscles.system())
-            .add_system_set(
-                SystemSet::new()
-                    .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / TIME_SCALE))
-                    .with_system(advance_internal_clocks.system())
-                    .with_system(apply_forces.system()),
-            );
+        let options = Opt::from_args();
+
+        if !options.headless {
+            app.add_plugin(DebugLinesPlugin)
+                .add_system(draw_muscles.system());
+        }
+
+        app.add_system_set(
+            SystemSet::new()
+                .with_run_criteria(FixedTimestep::step(
+                    FIXED_TIME_STEP as f64 / CONFIG.time_scale as f64,
+                ))
+                .with_system(advance_internal_clocks.system())
+                .with_system(apply_forces.system()),
+        );
     }
 }
 
@@ -100,7 +109,6 @@ fn apply_forces(
     node_positions: Query<&Transform, With<node::Node>>,
     mut node_velocities: Query<&mut Velocity, With<node::Node>>,
     creatures: Query<&Creature>,
-    config: Res<Config>,
 ) {
     let span = info_span!("system", name = "apply_forces");
     let _guard = span.enter();
@@ -134,7 +142,7 @@ fn apply_forces(
         let force =
             ((muscle_length - target_length) / muscle_length.max(target_length)).powf(2.0) * sign;
 
-        let strength = muscle.strength * (1.0 / config.air_friction);
+        let strength = muscle.strength * (1.0 / CONFIG.air_friction);
 
         let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
         first_node_velocity.0 += second_to_first_direction * force * strength * delta_time;

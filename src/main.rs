@@ -1,13 +1,20 @@
+#![feature(once_cell)]
+use std::time::Duration;
+
+use arguments::Opt;
 use bevy::{
-    diagnostic::FrameTimeDiagnosticsPlugin, input, prelude::*,
+    app::ScheduleRunnerSettings, diagnostic::FrameTimeDiagnosticsPlugin, input, prelude::*,
     render::camera::OrthographicProjection,
 };
+mod arguments;
+mod config;
 mod simulation2d;
 
-use simulation2d::{plane::create_plane, plugin::SimulationPlugin};
+use simulation2d::{plane::create_plane, plugin::SimulationPlugin, ui::UIPlugin};
 
 mod genetic_algorithm;
 use genetic_algorithm::plugin::GeneticAlgorithmPlugin;
+use structopt::StructOpt;
 
 struct CameraTransform {
     relative_zoom: f32,
@@ -18,7 +25,6 @@ struct MainCamera;
 
 fn setup(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
@@ -27,7 +33,7 @@ fn setup(
         .spawn_bundle(OrthographicCameraBundle::new_2d())
         .insert(MainCamera);
 
-    create_plane(&mut commands, &mut meshes, &mut materials, asset_server);
+    create_plane(&mut commands, &mut materials, asset_server);
 }
 
 fn camera_movement(keys: Res<Input<KeyCode>>, mut camera: ResMut<CameraTransform>) {
@@ -88,18 +94,33 @@ fn move_camera(
 }
 
 fn main() {
-    App::build()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(SimulationPlugin)
-        .add_plugin(GeneticAlgorithmPlugin)
-        .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_startup_system(setup.system())
-        .insert_resource(CameraTransform {
-            relative_zoom: 0.0,
-            position: Vec2::new(0.0, 0.0),
-        })
-        .add_system(camera_movement.system())
-        .add_system(move_camera.system())
-        .add_system(input::system::exit_on_esc_system.system())
-        .run();
+    let options = Opt::from_args();
+
+    let mut app = App::build();
+
+    if options.headless {
+        println!("Running in headless mode");
+
+        app.insert_resource(ScheduleRunnerSettings::run_loop(Duration::from_secs_f64(
+            1.0 / 60.0,
+        )))
+        .add_plugins(MinimalPlugins);
+    } else {
+        app.add_plugins(DefaultPlugins)
+            .insert_resource(CameraTransform {
+                relative_zoom: 0.0,
+                position: Vec2::new(0.0, 0.0),
+            })
+            .add_system(camera_movement.system())
+            .add_system(move_camera.system())
+            .add_system(input::system::exit_on_esc_system.system())
+            .add_startup_system(setup.system())
+            .add_plugin(FrameTimeDiagnosticsPlugin::default())
+            .add_plugin(UIPlugin);
+    }
+
+    app.add_plugin(SimulationPlugin)
+        .add_plugin(GeneticAlgorithmPlugin);
+
+    app.run();
 }
