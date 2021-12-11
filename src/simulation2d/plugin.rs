@@ -105,15 +105,15 @@ fn tick_stopwatch(mut stopwatch: ResMut<EvaluationStopwatch>) {
 pub fn calculate_creatures_position(
     entity: Entity,
     collider_node_positions: &Query<(&Transform, &Parent), With<node::Node>>,
-) -> Vec3 {
+) -> f32 {
     let span = info_span!("helper", name = "calculate_creatures_position");
     let _guard = span.enter();
 
     let (creature_node_count, positions_sum) = collider_node_positions
         .iter()
         .filter(|(_, parent)| parent.0 == entity)
-        .fold((0, Vec3::ZERO), |(count, sum), (collider_position, _)| {
-            (count + 1, sum + collider_position.translation)
+        .fold((0, 0.0), |(count, sum), (collider_position, _)| {
+            (count + 1, sum + collider_position.translation.x)
         });
     positions_sum / creature_node_count as f32
 }
@@ -134,8 +134,8 @@ fn evaluate_simulation(
     }
 
     for (entity, mut creature) in creatures.iter_mut() {
-        let position = calculate_creatures_position(entity, &collider_node_positions);
-        creature.chromosome.fitness = position.x.abs();
+        let position_x = calculate_creatures_position(entity, &collider_node_positions);
+        creature.chromosome.fitness = position_x.abs();
         finished_evaluating_events.send(FinishedEvaluatingEvent {
             chromosome: creature.chromosome.clone(),
         });

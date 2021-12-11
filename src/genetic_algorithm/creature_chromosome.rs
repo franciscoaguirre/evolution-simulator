@@ -213,7 +213,7 @@ impl Mutable for CreatureChromosome {
         let node_index_remove: usize = rand::thread_rng().gen_range(0..nodes.len());
         let muscle_index_remove: usize = rand::thread_rng().gen_range(0..muscles.len());
 
-        if rand::random::<f32>() > ELIMINATION_MUTATION_CHANCE && nodes.len() > 2 {
+        if rand::random::<f32>() > ELIMINATION_MUTATION_CHANCE && nodes.len() > 3 {
             nodes.remove(node_index_remove);
         }
         if rand::random::<f32>() > ELIMINATION_MUTATION_CHANCE {
@@ -253,10 +253,13 @@ impl Correctable for CreatureChromosome {
 
 impl RandomCreatable for CreatureChromosome {
     fn random() -> Self {
-        let nodes: Vec<NodePhenotype> = (0..5).map(|_| NodePhenotype::random()).collect();
+        let mut rng = rand::thread_rng();
+
+        let nodes: Vec<NodePhenotype> = (0..rng.gen_range(3..6))
+            .map(|_| NodePhenotype::random())
+            .collect();
         let muscles: Vec<MusclePhenotype> = (0..5).map(|_| MusclePhenotype::random()).collect();
 
-        let mut rng = rand::thread_rng();
         let mut creature = CreatureChromosome {
             nodes,
             muscles,

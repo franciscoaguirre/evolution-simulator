@@ -3,7 +3,7 @@ use super::{
     operations::{Crossable, Mutable, RandomCreatable},
 };
 use rand::Rng;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Represents the characteristics of a Muscle
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
@@ -31,7 +31,7 @@ const MAX_EXTENDED_LENGTH: f32 = 0.40;
 const MIN_CONTRACTED_LENGTH: f32 = 0.08;
 const MAX_CONTRACTED_LENGTH: f32 = 0.40;
 
-const MIN_STRENGTH: f32 = 1.0;
+const MIN_STRENGTH: f32 = 0.5;
 const MAX_STRENGTH: f32 = 10.0;
 
 impl Crossable for MusclePhenotype {
