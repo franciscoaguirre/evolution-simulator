@@ -18,8 +18,12 @@ const IMPROVEMENT_THRESHOLD: f32 = 0.05;
 pub struct SpeciesBasedAlgorithm<T: Individual + Selective> {
     pub population: HashMap<usize, Vec<T>>,
     pub offspring_population: Vec<T>,
+    max_generations: usize,
+    max_no_improvement: usize,
+    current_unbeat_best: (f32, usize),
     previous_best_by_species: HashMap<usize, (f32, usize)>,
     new_population: Vec<T>,
+    current_generation: usize,
 }
 
 impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
@@ -35,6 +39,16 @@ impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
     }
 }
 
+impl<T: Individual + Selective + Default> SpeciesBasedAlgorithm<T> {
+    pub fn new(max_generations: usize, max_no_improvement: usize) -> Self {
+        SpeciesBasedAlgorithm {
+            max_generations,
+            max_no_improvement,
+            ..Default::default()
+        }
+    }
+}
+
 impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorithm<T> {
     fn get_population_for_sim(&self) -> Box<dyn Iterator<Item = &T> + '_> {
         Box::new(
@@ -46,6 +60,8 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
     }
 
     fn initialize_population(&mut self, population_size: usize) {
+        self.current_generation = 0;
+        self.current_unbeat_best = (std::f32::MIN, 0);
         let initial_population: Vec<T> = (0..population_size).map(|_| T::random()).collect();
 
         for chromosome in initial_population {
@@ -74,6 +90,8 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
 
     // TODO: We are cloning every child multiple times
     fn reproduction(&mut self) {
+        self.current_generation += 1;
+
         let mut offspring_population: Vec<T> = Vec::new();
 
         // Create reference to elements ordered by fitness
@@ -168,6 +186,10 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
     }
 
     fn finished_evaluating(&mut self, chromosome: T) {
+        if chromosome.get_fitness() > self.current_unbeat_best.0 {
+            self.current_unbeat_best = (chromosome.get_fitness(), self.current_generation);
+        }
+
         self.new_population.push(chromosome);
     }
 
@@ -243,5 +265,10 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
         stream.write(std_dev_string.as_bytes()).unwrap();
         stream.write(b"\n").unwrap();
         stream.flush().unwrap();
+    }
+
+    fn get_should_end(&self) -> bool {
+        self.max_generations + 1 == self.current_generation
+            || self.current_generation - self.current_unbeat_best.1 > self.max_no_improvement
     }
 }

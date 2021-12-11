@@ -13,7 +13,21 @@ use super::runner::Runnable;
 pub struct Algorithm<T: Individual> {
     pub population: Vec<T>,
     pub offspring_population: Vec<T>,
+    max_generations: usize,
+    max_no_improvement: usize,
+    current_unbeat_best: (f32, usize),
     new_population: Vec<T>,
+    current_generation: usize,
+}
+
+impl<T: Individual + Default> Algorithm<T> {
+    pub fn new(max_generations: usize, max_no_improvement: usize) -> Self {
+        Algorithm {
+            max_generations,
+            max_no_improvement,
+            ..Default::default()
+        }
+    }
 }
 
 impl<T: Individual> Runnable<T> for Algorithm<T> {
@@ -26,6 +40,8 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
     }
 
     fn initialize_population(&mut self, population_size: usize) {
+        self.current_generation = 0;
+        self.current_unbeat_best = (std::f32::MIN, 0);
         self.population = (0..population_size).map(|_| T::random()).collect();
     }
 
@@ -37,6 +53,7 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
     }
 
     fn reproduction(&mut self) {
+        self.current_generation += 1;
         let mut offspring_population: Vec<T> = Vec::new();
 
         for chunk in self.population.chunks(2) {
@@ -61,6 +78,10 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
     }
 
     fn finished_evaluating(&mut self, chromosome: T) {
+        if chromosome.get_fitness() > self.current_unbeat_best.0 {
+            self.current_unbeat_best = (chromosome.get_fitness(), self.current_generation);
+        }
+
         self.new_population.push(chromosome);
     }
 
@@ -71,25 +92,29 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
     fn save_results(&self, generation_count: usize) {
         let pretty_config = PrettyConfig::default();
         let best = self
-            .population
+            .new_population
             .iter()
-            .max_by(|x, y| y.get_fitness().partial_cmp(&x.get_fitness()).unwrap())
+            .max_by(|x, y| x.get_fitness().partial_cmp(&y.get_fitness()).unwrap())
             .unwrap();
         let worst = self
-            .population
+            .new_population
             .iter()
-            .min_by(|x, y| y.get_fitness().partial_cmp(&x.get_fitness()).unwrap())
+            .min_by(|x, y| x.get_fitness().partial_cmp(&y.get_fitness()).unwrap())
             .unwrap();
-        let median = &self.population[self.population.len() / 2];
+        let median = &self.new_population[self.new_population.len() / 2];
 
-        let mean = self.population.iter().map(|x| x.get_fitness()).sum::<f32>()
-            / self.population.len() as f32;
+        let mean = self
+            .new_population
+            .iter()
+            .map(|x| x.get_fitness())
+            .sum::<f32>()
+            / self.new_population.len() as f32;
         let std_dev = self
-            .population
+            .new_population
             .iter()
             .map(|x| (x.get_fitness() - mean).powi(2))
             .sum::<f32>()
-            / self.population.len() as f32;
+            / self.new_population.len() as f32;
 
         let mean_string = format!("{:.2}", mean);
         let std_dev_string = format!("{:.2}", std_dev);
@@ -140,5 +165,10 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
         stream.write(std_dev_string.as_bytes()).unwrap();
         stream.write(b"\n").unwrap();
         stream.flush().unwrap();
+    }
+
+    fn get_should_end(&self) -> bool {
+        self.max_generations + 1 == self.current_generation
+            || self.current_generation - self.current_unbeat_best.1 > self.max_no_improvement
     }
 }

@@ -1,6 +1,6 @@
 use std::{fs::File, time::Duration};
 
-use bevy::{core::FixedTimestep, prelude::*};
+use bevy::{app::AppExit, core::FixedTimestep, prelude::*};
 
 use ron::de::from_reader;
 use structopt::StructOpt;
@@ -47,7 +47,8 @@ impl Plugin for SimulationPlugin {
                 SystemSet::new()
                     .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / TIME_SCALE))
                     .with_system(tick_stopwatch.system()),
-            );
+            )
+            .add_system(check_should_end_simulation.system());
 
         let options = Opt::from_args();
 
@@ -176,4 +177,13 @@ fn evaluate_simulation(
     }
 
     stopwatch.0.pause();
+}
+
+fn check_should_end_simulation(
+    ga: Res<GeneticAlgorithm>,
+    mut app_exit_events: EventWriter<AppExit>,
+) {
+    if ga.algorithm.get_should_end() {
+        app_exit_events.send(AppExit);
+    };
 }

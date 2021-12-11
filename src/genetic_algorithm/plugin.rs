@@ -38,12 +38,18 @@ impl Plugin for GeneticAlgorithmPlugin {
         if options.speciesism {
             println!("Running speciesism GA");
             app.insert_resource(GeneticAlgorithm {
-                algorithm: Box::new(CreatureSpeciesGA::default()),
+                algorithm: Box::new(CreatureSpeciesGA::new(
+                    options.max_generations,
+                    options.max_no_improvement,
+                )),
             });
         } else {
             println!("Running regular speciesism GA");
             app.insert_resource(GeneticAlgorithm {
-                algorithm: Box::new(CreatureGA::default()),
+                algorithm: Box::new(CreatureGA::new(
+                    options.max_generations,
+                    options.max_no_improvement,
+                )),
             });
         }
         app.insert_resource(FinishedEvaluatingCounter::default())
