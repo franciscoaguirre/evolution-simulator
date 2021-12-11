@@ -1,5 +1,5 @@
 use rand::Rng;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::genetic_algorithm::*;
 
@@ -9,6 +9,7 @@ use super::{
     node_phenotype::NodePhenotype,
     operations::{
         Breedable, Correctable, Crossable, Evaluatable, Individual, Mutable, RandomCreatable,
+        Selective,
     },
 };
 
@@ -276,6 +277,12 @@ impl Evaluatable for CreatureChromosome {
 }
 
 impl Individual for CreatureChromosome {}
+
+impl Selective for CreatureChromosome {
+    fn characteristic(&self) -> usize {
+        self.nodes.len()
+    }
+}
 
 #[cfg(test)]
 mod tests {

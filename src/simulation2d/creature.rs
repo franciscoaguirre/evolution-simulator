@@ -54,32 +54,3 @@ pub fn create_creature(
             }
         });
 }
-
-// pub fn create_creature_bundle(
-//     commands: &mut Commands,
-//     creature_chromosome: CreatureChromosome,
-//     meshes: &mut ResMut<Assets<Mesh>>,
-//     materials: &mut ResMut<Assets<ColorMaterial>>,
-//     asset_server: &Res<AssetServer>,
-//     node_size: f32,
-// ) -> CreatureBundle {
-//     let mut nodes: Vec<Entity> = vec![];
-
-//     commands
-//         .spawn()
-//         .insert(Creature {
-//             chromosome: creature_chromosome.clone(),
-//             internal_clock: Stopwatch::new(),
-//         })
-//         .with_children(|parent| {
-//             for node in creature_chromosome.nodes.iter() {
-//                 let entity =
-//                     node::create_node(parent, node, meshes, materials, asset_server, node_size);
-//                 nodes.push(entity)
-//             }
-
-//             for muscle in creature_chromosome.muscles.iter() {
-//                 muscle::create_muscle(parent, muscle, &nodes);
-//             }
-//         });
-// }

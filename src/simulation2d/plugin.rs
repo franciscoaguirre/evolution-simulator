@@ -4,7 +4,9 @@ use bevy::{core::FixedTimestep, prelude::*};
 
 use ron::de::from_reader;
 
-use crate::genetic_algorithm::plugin::{CreatureGA, FinishedEvaluatingEvent, StartEvaluatingEvent};
+use crate::genetic_algorithm::plugin::{
+    CreatureSpeciesGA, FinishedEvaluatingEvent, StartEvaluatingEvent,
+};
 
 use super::{
     constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS},
@@ -18,9 +20,6 @@ use super::{
 };
 
 pub struct SimulationPlugin;
-
-#[derive(Default)]
-struct CreaturesCreated(usize);
 
 impl Plugin for SimulationPlugin {
     fn build(&self, app: &mut AppBuilder) {
@@ -41,12 +40,10 @@ impl Plugin for SimulationPlugin {
                     Config::default()
                 }
             })
-            .insert_resource(CreaturesCreated::default())
             .insert_resource(EvaluationStopwatch::default())
             .insert_resource(GenerationCount::default())
             .add_system(simulate.system())
             .add_system(evaluate_simulation.system())
-            .add_system(restart_stopwatch.system())
             .add_system_set(
                 SystemSet::new()
                     .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / 5.0))
@@ -63,12 +60,12 @@ fn load_config_from_file() -> Result<Config, ron::error::Error> {
 }
 
 fn simulate(
-    ga: Res<CreatureGA>,
-    mut creatures_created: ResMut<CreaturesCreated>,
+    ga: Res<CreatureSpeciesGA>,
     mut commands: Commands,
     mut start_evaluating_events: EventReader<StartEvaluatingEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut stopwatch: ResMut<EvaluationStopwatch>,
     asset_server: Res<AssetServer>,
     config: Res<Config>,
 ) {
@@ -76,7 +73,12 @@ fn simulate(
     let _guard = span.enter();
 
     for _event in start_evaluating_events.iter() {
-        for chromosome in ga.population.iter().chain(ga.offspring_population.iter()) {
+        for chromosome in ga
+            .population
+            .values()
+            .flatten()
+            .chain(ga.offspring_population.iter())
+        {
             create_creature(
                 &mut commands,
                 chromosome.clone(),
@@ -85,32 +87,15 @@ fn simulate(
                 &asset_server,
                 config.node_size,
             );
-            creatures_created.0 += 1;
         }
-    }
-}
 
-fn restart_stopwatch(
-    mut generation_count: ResMut<GenerationCount>,
-    config: Res<Config>,
-    mut creatures_created: ResMut<CreaturesCreated>,
-    mut stopwatch: ResMut<EvaluationStopwatch>,
-) {
-    let span = info_span!("system", name = "restart_stopwatch");
-    let _guard = span.enter();
-
-    if creatures_created.0 == config.population_size * 2 {
         stopwatch.0.reset();
         stopwatch.0.unpause();
-        generation_count.0 += 1;
-
-        creatures_created.0 = 0;
+        dbg!("RESTARTING STOPWATCH");
     }
 }
 
-fn tick_stopwatch(
-    mut stopwatch: ResMut<EvaluationStopwatch>,
-) {
+fn tick_stopwatch(mut stopwatch: ResMut<EvaluationStopwatch>) {
     let span = info_span!("system", name = "tick_stopwatch");
     let _guard = span.enter();
 
