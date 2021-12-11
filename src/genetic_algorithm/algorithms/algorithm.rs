@@ -17,6 +17,14 @@ pub struct Algorithm<T: Individual> {
 }
 
 impl<T: Individual> Runnable<T> for Algorithm<T> {
+    fn get_population_for_sim(&self) -> Box<dyn Iterator<Item = &T> + '_> {
+        Box::new(
+            self.population
+                .iter()
+                .chain(self.offspring_population.iter()),
+        )
+    }
+
     fn initialize_population(&mut self, population_size: usize) {
         self.population = (0..population_size).map(|_| T::random()).collect();
     }

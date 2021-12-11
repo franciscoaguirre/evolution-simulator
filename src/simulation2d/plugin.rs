@@ -7,7 +7,7 @@ use structopt::StructOpt;
 
 use crate::{
     arguments::Opt,
-    genetic_algorithm::plugin::{CreatureSpeciesGA, FinishedEvaluatingEvent, StartEvaluatingEvent},
+    genetic_algorithm::plugin::{FinishedEvaluatingEvent, GeneticAlgorithm, StartEvaluatingEvent},
 };
 
 use super::{
@@ -67,7 +67,7 @@ fn load_config_from_file() -> Result<Config, ron::error::Error> {
 }
 
 fn simulate(
-    ga: Res<CreatureSpeciesGA>,
+    ga: Res<GeneticAlgorithm>,
     mut commands: Commands,
     mut start_evaluating_events: EventReader<StartEvaluatingEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -80,12 +80,7 @@ fn simulate(
     let _guard = span.enter();
 
     for _event in start_evaluating_events.iter() {
-        for chromosome in ga
-            .population
-            .values()
-            .flatten()
-            .chain(ga.offspring_population.iter())
-        {
+        for chromosome in ga.algorithm.get_population_for_sim() {
             create_creature(
                 &mut commands,
                 chromosome.clone(),
@@ -102,7 +97,7 @@ fn simulate(
 }
 
 fn simulate_headless(
-    ga: Res<CreatureSpeciesGA>,
+    ga: Res<GeneticAlgorithm>,
     mut commands: Commands,
     mut start_evaluating_events: EventReader<StartEvaluatingEvent>,
     mut stopwatch: ResMut<EvaluationStopwatch>,
@@ -113,12 +108,7 @@ fn simulate_headless(
     let _guard = span.enter();
 
     for _event in start_evaluating_events.iter() {
-        for chromosome in ga
-            .population
-            .values()
-            .flatten()
-            .chain(ga.offspring_population.iter())
-        {
+        for chromosome in ga.algorithm.get_population_for_sim() {
             create_creature_headless(&mut commands, chromosome.clone(), config.node_size);
         }
 

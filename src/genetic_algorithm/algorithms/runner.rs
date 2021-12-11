@@ -27,4 +27,7 @@ pub trait Runnable<T: Individual> {
 
     /// Saves the generation results into a file called results_generation_{number_of_generation}.ron
     fn save_results(&self, generation_count: usize);
+
+    /// Returns the population inside a vec
+    fn get_population_for_sim(&self) -> Box<dyn Iterator<Item = &T> + '_>;
 }

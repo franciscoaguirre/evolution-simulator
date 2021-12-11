@@ -36,6 +36,15 @@ impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
 }
 
 impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorithm<T> {
+    fn get_population_for_sim(&self) -> Box<dyn Iterator<Item = &T> + '_> {
+        Box::new(
+            self.population
+                .values()
+                .flatten()
+                .chain(self.offspring_population.iter()),
+        )
+    }
+
     fn initialize_population(&mut self, population_size: usize) {
         let initial_population: Vec<T> = (0..population_size).map(|_| T::random()).collect();
 
