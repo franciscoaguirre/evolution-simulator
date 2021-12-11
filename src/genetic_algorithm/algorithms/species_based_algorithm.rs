@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    fmt,
     fs::File,
     io::{BufWriter, Write},
 };
@@ -33,7 +34,7 @@ impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
     }
 }
 
-impl<T: Individual + Selective> Runnable<T> for SpeciesBasedAlgorithm<T> {
+impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorithm<T> {
     fn initialize_population(&mut self, population_size: usize) {
         let initial_population: Vec<T> = (0..population_size).map(|_| T::random()).collect();
 
@@ -50,8 +51,7 @@ impl<T: Individual + Selective> Runnable<T> for SpeciesBasedAlgorithm<T> {
         self.population.clear();
         let mut flatten_population = population.values().flatten().collect::<Vec<&T>>();
 
-        flatten_population.sort_by(|a, b| a.get_fitness().partial_cmp(&b.get_fitness()).unwrap());
-
+        flatten_population.sort_by(|a, b| b.get_fitness().partial_cmp(&a.get_fitness()).unwrap());
         flatten_population.truncate(population_size);
 
         for individual in flatten_population {
@@ -145,26 +145,12 @@ impl<T: Individual + Selective> Runnable<T> for SpeciesBasedAlgorithm<T> {
     }
 
     fn save_results(&self, generation_count: usize) {
-        let mut population: Vec<&T> = self.population.values().flatten().clone().collect();
+        let mut population: Vec<T> = self.new_population.clone();
         population.sort_by(|a, b| b.get_fitness().partial_cmp(&a.get_fitness()).unwrap());
 
         let pretty_config = PrettyConfig::default();
-        let best = to_string_pretty(
-            population
-                .iter()
-                .max_by(|x, y| x.get_fitness().partial_cmp(&y.get_fitness()).unwrap())
-                .unwrap(),
-            pretty_config.clone(),
-        )
-        .unwrap();
-        let worst = to_string_pretty(
-            population
-                .iter()
-                .min_by(|x, y| x.get_fitness().partial_cmp(&y.get_fitness()).unwrap())
-                .unwrap(),
-            pretty_config.clone(),
-        )
-        .unwrap();
+        let best = population[0].clone();
+        let worst = population.last().unwrap();
         let median =
             to_string_pretty(&population[population.len() / 2], pretty_config.clone()).unwrap();
 
@@ -183,10 +169,22 @@ impl<T: Individual + Selective> Runnable<T> for SpeciesBasedAlgorithm<T> {
         let mut stream = BufWriter::new(buffer);
 
         stream.write(b"Best: ").unwrap();
-        stream.write(best.as_bytes()).unwrap();
+        stream
+            .write(
+                to_string_pretty(&best, pretty_config.clone())
+                    .unwrap()
+                    .as_bytes(),
+            )
+            .unwrap();
         stream.write(b"\n").unwrap();
         stream.write(b"Worst: ").unwrap();
-        stream.write(worst.as_bytes()).unwrap();
+        stream
+            .write(
+                to_string_pretty(&worst, pretty_config.clone())
+                    .unwrap()
+                    .as_bytes(),
+            )
+            .unwrap();
         stream.write(b"\n").unwrap();
         stream.write(b"Median: ").unwrap();
         stream.write(median.as_bytes()).unwrap();
