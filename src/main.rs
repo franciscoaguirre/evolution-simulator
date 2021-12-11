@@ -1,3 +1,4 @@
+#![feature(once_cell)]
 use std::time::Duration;
 
 use arguments::Opt;
@@ -6,6 +7,7 @@ use bevy::{
     render::camera::OrthographicProjection,
 };
 mod arguments;
+mod config;
 mod simulation2d;
 
 use simulation2d::{plane::create_plane, plugin::SimulationPlugin, ui::UIPlugin};

@@ -1277,6 +1277,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_prototype_debug_lines",
+ "once_cell",
  "rand",
  "ron 0.7.0",
  "serde",

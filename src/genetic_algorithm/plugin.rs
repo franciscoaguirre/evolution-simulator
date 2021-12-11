@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 use structopt::StructOpt;
 
-use crate::{
-    arguments::Opt,
-    simulation2d::resources::{Config, GenerationCount},
-};
+use crate::{arguments::Opt, config::CONFIG, simulation2d::resources::GenerationCount};
 
 use super::{
     algorithms::{
@@ -64,9 +61,8 @@ impl Plugin for GeneticAlgorithmPlugin {
 fn setup_genetic_algorithm(
     mut ga: ResMut<GeneticAlgorithm>,
     mut start_evaluating_events: EventWriter<StartEvaluatingEvent>,
-    config: Res<Config>,
 ) {
-    ga.algorithm.initialize_population(config.population_size);
+    ga.algorithm.initialize_population(CONFIG.population_size);
     ga.algorithm.reproduction();
     start_evaluating_events.send(StartEvaluatingEvent)
 }
@@ -75,16 +71,15 @@ fn genetic_algorithm_system(
     mut ga: ResMut<GeneticAlgorithm>,
     mut start_evaluating_events: EventWriter<StartEvaluatingEvent>,
     mut generation_count: ResMut<GenerationCount>,
-    config: Res<Config>,
 ) {
     if ga
         .algorithm
-        .all_have_finished_evaluating(config.population_size)
+        .all_have_finished_evaluating(CONFIG.population_size)
     {
         ga.algorithm.save_results(generation_count.0);
 
         ga.algorithm.replacement();
-        ga.algorithm.selection(config.population_size);
+        ga.algorithm.selection(CONFIG.population_size);
         ga.algorithm.reproduction();
         generation_count.0 += 1;
         start_evaluating_events.send(StartEvaluatingEvent);

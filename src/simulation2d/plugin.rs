@@ -1,22 +1,22 @@
-use std::{fs::File, time::Duration};
+use std::time::Duration;
 
 use bevy::{app::AppExit, core::FixedTimestep, prelude::*};
 
-use ron::de::from_reader;
 use structopt::StructOpt;
 
 use crate::{
     arguments::Opt,
+    config::CONFIG,
     genetic_algorithm::plugin::{FinishedEvaluatingEvent, GeneticAlgorithm, StartEvaluatingEvent},
 };
 
 use super::{
-    constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS, TIME_SCALE},
+    constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS},
     creature::{create_creature, create_creature_headless, Creature},
     muscle::MusclePlugin,
     node,
     physics::PhysicsPlugin,
-    resources::{Config, EvaluationStopwatch, GenerationCount, RealTimeStopwatch},
+    resources::{EvaluationStopwatch, GenerationCount, RealTimeStopwatch},
 };
 
 pub struct SimulationPlugin;
@@ -25,19 +25,6 @@ impl Plugin for SimulationPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_plugin(MusclePlugin)
             .add_plugin(PhysicsPlugin)
-            .insert_resource(match load_config_from_file() {
-                Ok(x) => {
-                    info!("Loaded config from file");
-                    x
-                }
-                Err(err) => {
-                    warn!(
-                        "Config file error. {}. Using default config.",
-                        err.code.to_string()
-                    );
-                    Config::default()
-                }
-            })
             .insert_resource(EvaluationStopwatch::default())
             .insert_resource(GenerationCount::default())
             .insert_resource(RealTimeStopwatch::default())
@@ -45,7 +32,9 @@ impl Plugin for SimulationPlugin {
             .add_system(real_stopwatch_ticker.system())
             .add_system_set(
                 SystemSet::new()
-                    .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / TIME_SCALE))
+                    .with_run_criteria(FixedTimestep::step(
+                        FIXED_TIME_STEP as f64 / CONFIG.time_scale as f64,
+                    ))
                     .with_system(tick_stopwatch.system()),
             )
             .add_system(check_should_end_simulation.system());
@@ -60,13 +49,6 @@ impl Plugin for SimulationPlugin {
     }
 }
 
-fn load_config_from_file() -> Result<Config, ron::error::Error> {
-    let input_path = "config.ron";
-    let file = File::open(&input_path)?;
-    let config: Config = from_reader(file)?;
-    Ok(config)
-}
-
 fn simulate(
     ga: Res<GeneticAlgorithm>,
     mut commands: Commands,
@@ -75,7 +57,6 @@ fn simulate(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut stopwatch: ResMut<EvaluationStopwatch>,
     asset_server: Res<AssetServer>,
-    config: Res<Config>,
 ) {
     let span = info_span!("system", name = "simulate");
     let _guard = span.enter();
@@ -88,7 +69,7 @@ fn simulate(
                 &mut meshes,
                 &mut materials,
                 &asset_server,
-                config.node_size,
+                CONFIG.node_size,
             );
         }
 
@@ -103,14 +84,13 @@ fn simulate_headless(
     mut start_evaluating_events: EventReader<StartEvaluatingEvent>,
     mut stopwatch: ResMut<EvaluationStopwatch>,
     mut real_stopwatch: ResMut<RealTimeStopwatch>,
-    config: Res<Config>,
 ) {
     let span = info_span!("system", name = "simulate");
     let _guard = span.enter();
 
     for _event in start_evaluating_events.iter() {
         for chromosome in ga.algorithm.get_population_for_sim() {
-            create_creature_headless(&mut commands, chromosome.clone(), config.node_size);
+            create_creature_headless(&mut commands, chromosome.clone(), CONFIG.node_size);
         }
 
         println!("Time spent: {}", real_stopwatch.0.elapsed().as_millis());
@@ -157,12 +137,11 @@ fn evaluate_simulation(
     mut creatures: Query<(Entity, &mut Creature)>,
     collider_node_positions: Query<(&Transform, &Parent), With<node::Node>>,
     mut finished_evaluating_events: EventWriter<FinishedEvaluatingEvent>,
-    config: Res<Config>,
 ) {
     let span = info_span!("system", name = "evaluate_simulation");
     let _guard = span.enter();
 
-    if stopwatch.0.paused() || stopwatch.0.elapsed_secs() <= config.evaluation_time {
+    if stopwatch.0.paused() || stopwatch.0.elapsed_secs() <= CONFIG.evaluation_time {
         return;
     }
 
