@@ -1,4 +1,7 @@
-use std::{fs::File, io::Write};
+use std::{
+    fs::File,
+    io::{BufWriter, Write},
+};
 
 use ron::ser::{to_string_pretty, PrettyConfig};
 
@@ -59,37 +62,75 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
 
     fn save_results(&self, generation_count: usize) {
         let pretty_config = PrettyConfig::default();
-        let best = to_string_pretty(
-            self.population
-                .iter()
-                .max_by(|x, y| x.get_fitness().partial_cmp(&y.get_fitness()).unwrap())
-                .unwrap(),
-            pretty_config.clone(),
-        )
-        .unwrap();
-        let worst = to_string_pretty(
-            self.population
-                .iter()
-                .min_by(|x, y| x.get_fitness().partial_cmp(&y.get_fitness()).unwrap())
-                .unwrap(),
-            pretty_config.clone(),
-        )
-        .unwrap();
-        let mean = to_string_pretty(
-            &self.population[self.population.len() / 2],
-            pretty_config.clone(),
-        )
-        .unwrap();
+        let best = self
+            .population
+            .iter()
+            .max_by(|x, y| y.get_fitness().partial_cmp(&x.get_fitness()).unwrap())
+            .unwrap();
+        let worst = self
+            .population
+            .iter()
+            .min_by(|x, y| y.get_fitness().partial_cmp(&x.get_fitness()).unwrap())
+            .unwrap();
+        let median = &self.population[self.population.len() / 2];
 
-        let mut buffer =
-            File::create(format!("results_generation_{}.ron", generation_count)).unwrap();
-        buffer.write(b"Best: ").unwrap();
-        buffer.write(best.as_bytes()).unwrap();
-        buffer.write(b"\n").unwrap();
-        buffer.write(b"Worst: ").unwrap();
-        buffer.write(worst.as_bytes()).unwrap();
-        buffer.write(b"\n").unwrap();
-        buffer.write(b"Mean: ").unwrap();
-        buffer.write(mean.as_bytes()).unwrap();
+        let mean = self.population.iter().map(|x| x.get_fitness()).sum::<f32>()
+            / self.population.len() as f32;
+        let std_dev = self
+            .population
+            .iter()
+            .map(|x| (x.get_fitness() - mean).powi(2))
+            .sum::<f32>()
+            / self.population.len() as f32;
+
+        let mean_string = format!("{:.2}", mean);
+        let std_dev_string = format!("{:.2}", std_dev);
+
+        println!(
+            "Generation {}: Best: {}, Worst: {}, Median: {}, Mean: {}, StdDev: {}",
+            generation_count,
+            best.get_fitness(),
+            worst.get_fitness(),
+            median.get_fitness(),
+            mean_string,
+            std_dev_string
+        );
+
+        let buffer = File::create(format!("results_generation_{}.ron", generation_count)).unwrap();
+        let mut stream = BufWriter::new(buffer);
+        stream.write(b"Best: ").unwrap();
+        stream
+            .write(
+                to_string_pretty(best, pretty_config.clone())
+                    .unwrap()
+                    .as_bytes(),
+            )
+            .unwrap();
+        stream.write(b"\n").unwrap();
+        stream.write(b"Worst: ").unwrap();
+        stream
+            .write(
+                to_string_pretty(worst, pretty_config.clone())
+                    .unwrap()
+                    .as_bytes(),
+            )
+            .unwrap();
+        stream.write(b"\n").unwrap();
+        stream.write(b"Mean: ").unwrap();
+        stream
+            .write(
+                to_string_pretty(median, pretty_config.clone())
+                    .unwrap()
+                    .as_bytes(),
+            )
+            .unwrap();
+        stream.write(b"\n").unwrap();
+        stream.write(b"Mean: ").unwrap();
+        stream.write(mean_string.as_bytes()).unwrap();
+        stream.write(b"\n").unwrap();
+        stream.write(b"Std. Dev.: ").unwrap();
+        stream.write(std_dev_string.as_bytes()).unwrap();
+        stream.write(b"\n").unwrap();
+        stream.flush().unwrap();
     }
 }

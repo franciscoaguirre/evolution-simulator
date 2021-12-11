@@ -3,27 +3,27 @@ use std::{fs::File, time::Duration};
 use bevy::{core::FixedTimestep, prelude::*};
 
 use ron::de::from_reader;
+use structopt::StructOpt;
 
-use crate::genetic_algorithm::plugin::{
-    CreatureSpeciesGA, FinishedEvaluatingEvent, StartEvaluatingEvent,
+use crate::{
+    arguments::Opt,
+    genetic_algorithm::plugin::{CreatureSpeciesGA, FinishedEvaluatingEvent, StartEvaluatingEvent},
 };
 
 use super::{
     constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS, TIME_SCALE},
-    creature::{create_creature, Creature},
+    creature::{create_creature, create_creature_headless, Creature},
     muscle::MusclePlugin,
     node,
     physics::PhysicsPlugin,
-    resources::{Config, EvaluationStopwatch, GenerationCount},
-    ui::UIPlugin,
+    resources::{Config, EvaluationStopwatch, GenerationCount, RealTimeStopwatch},
 };
 
 pub struct SimulationPlugin;
 
 impl Plugin for SimulationPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(UIPlugin)
-            .add_plugin(MusclePlugin)
+        app.add_plugin(MusclePlugin)
             .add_plugin(PhysicsPlugin)
             .insert_resource(match load_config_from_file() {
                 Ok(x) => {
@@ -40,13 +40,22 @@ impl Plugin for SimulationPlugin {
             })
             .insert_resource(EvaluationStopwatch::default())
             .insert_resource(GenerationCount::default())
-            .add_system(simulate.system())
+            .insert_resource(RealTimeStopwatch::default())
             .add_system(evaluate_simulation.system())
+            .add_system(real_stopwatch_ticker.system())
             .add_system_set(
                 SystemSet::new()
                     .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / TIME_SCALE))
                     .with_system(tick_stopwatch.system()),
             );
+
+        let options = Opt::from_args();
+
+        if options.headless {
+            app.add_system(simulate_headless.system());
+        } else {
+            app.add_system(simulate.system());
+        }
     }
 }
 
@@ -92,6 +101,35 @@ fn simulate(
     }
 }
 
+fn simulate_headless(
+    ga: Res<CreatureSpeciesGA>,
+    mut commands: Commands,
+    mut start_evaluating_events: EventReader<StartEvaluatingEvent>,
+    mut stopwatch: ResMut<EvaluationStopwatch>,
+    mut real_stopwatch: ResMut<RealTimeStopwatch>,
+    config: Res<Config>,
+) {
+    let span = info_span!("system", name = "simulate");
+    let _guard = span.enter();
+
+    for _event in start_evaluating_events.iter() {
+        for chromosome in ga
+            .population
+            .values()
+            .flatten()
+            .chain(ga.offspring_population.iter())
+        {
+            create_creature_headless(&mut commands, chromosome.clone(), config.node_size);
+        }
+
+        println!("Time spent: {}", real_stopwatch.0.elapsed().as_millis());
+        stopwatch.0.reset();
+        stopwatch.0.unpause();
+
+        real_stopwatch.0.reset();
+    }
+}
+
 fn tick_stopwatch(mut stopwatch: ResMut<EvaluationStopwatch>) {
     let span = info_span!("system", name = "tick_stopwatch");
     let _guard = span.enter();
@@ -99,6 +137,10 @@ fn tick_stopwatch(mut stopwatch: ResMut<EvaluationStopwatch>) {
     stopwatch
         .0
         .tick(Duration::from_nanos(FIXED_TIME_STEP_NANOSECONDS));
+}
+
+fn real_stopwatch_ticker(mut real_stopwatch: ResMut<RealTimeStopwatch>, time: Res<Time>) {
+    real_stopwatch.0.tick(time.delta());
 }
 
 /// Calculates creature's position averaging its nodes positions

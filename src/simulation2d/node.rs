@@ -51,3 +51,22 @@ pub fn create_node(
         })
         .id()
 }
+
+pub fn create_node_headless(
+    parent: &mut ChildBuilder,
+    node_phenotype: &NodePhenotype,
+    node_size: f32,
+) -> Entity {
+    parent
+        .spawn()
+        .insert(Node {
+            radius: node_size,
+            friction: node_phenotype.friction,
+        })
+        .insert(Velocity(Vec3::default()))
+        .insert(Transform {
+            translation: Vec3::new(node_phenotype.position.x, node_phenotype.position.y, 0.0),
+            ..Default::default()
+        })
+        .id()
+}

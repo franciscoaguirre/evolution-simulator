@@ -3,12 +3,14 @@ use std::time::Duration;
 use bevy::core::FixedTimestep;
 use bevy::prelude::*;
 use bevy_prototype_debug_lines::*;
+use structopt::StructOpt;
 
 use super::constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS, TIME_SCALE};
 use super::creature::Creature;
 use super::node;
 use super::physics::Velocity;
 use super::resources::Config;
+use crate::arguments::Opt;
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
 
 pub struct Muscle {
@@ -53,14 +55,19 @@ pub struct MusclePlugin;
 
 impl Plugin for MusclePlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(DebugLinesPlugin)
-            .add_system(draw_muscles.system())
-            .add_system_set(
-                SystemSet::new()
-                    .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / TIME_SCALE))
-                    .with_system(advance_internal_clocks.system())
-                    .with_system(apply_forces.system()),
-            );
+        let options = Opt::from_args();
+
+        if !options.headless {
+            app.add_plugin(DebugLinesPlugin)
+                .add_system(draw_muscles.system());
+        }
+
+        app.add_system_set(
+            SystemSet::new()
+                .with_run_criteria(FixedTimestep::step(FIXED_TIME_STEP as f64 / TIME_SCALE))
+                .with_system(advance_internal_clocks.system())
+                .with_system(apply_forces.system()),
+        );
     }
 }
 
