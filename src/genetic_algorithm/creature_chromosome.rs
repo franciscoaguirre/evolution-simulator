@@ -239,13 +239,17 @@ impl Correctable for CreatureChromosome {
     fn correct(&mut self) {
         self.fix_muscles_node_references();
         self.fix_danging_nodes();
+        self.nodes.iter_mut().for_each(|node| node.correct());
+        self.muscles.iter_mut().for_each(|muscle| muscle.correct());
     }
 
     fn is_correct(&self) -> bool {
         let mut graph_components = vec![0; self.nodes.len()];
         self.tag_graph_components(0, &mut Vec::new(), &mut graph_components, 1);
 
-        graph_components.iter().all(|&component| component == 1)
+        self.nodes.iter().all(|node| node.is_correct())
+            && self.muscles.iter().all(|muscle| muscle.is_correct())
+            && graph_components.iter().all(|&component| component == 1)
     }
 }
 

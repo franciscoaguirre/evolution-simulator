@@ -70,7 +70,7 @@ impl Default for Config {
     }
 }
 
-pub static CONFIG: Lazy<Config> = Lazy::new(|| load_config());
+pub static CONFIG: Lazy<Config> = Lazy::new(load_config);
 
 fn load_config() -> Config {
     match load_config_from_file() {
@@ -79,10 +79,7 @@ fn load_config() -> Config {
             x
         }
         Err(err) => {
-            println!(
-                "Config file error. {}. Using default config.",
-                err.code.to_string()
-            );
+            println!("Config file error. {}. Using default config.", err.code);
             Config::default()
         }
     }

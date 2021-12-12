@@ -1,0 +1,23 @@
+CreatureChromosome(
+    internal_clock_size: 1.0,
+    fitness: 0.0,
+    nodes: [
+        NodePhenotype(
+            position: Vec2(1.0, 1.0),
+            friction: 0.3,
+        ),
+        NodePhenotype(
+            position: Vec2(-1.0, -1.0),
+            friction: 1.0,
+        ),
+    ],
+    muscles: [
+        MusclePhenotype(
+            contracted_time: 0.3,
+            extended_length: 0.30,
+            contracted_length: 0.10,
+            strength: 5.0,
+            nodes: (0, 1),
+        )
+    ],
+)

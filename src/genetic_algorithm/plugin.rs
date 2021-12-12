@@ -1,7 +1,13 @@
-use bevy::prelude::*;
+use bevy::{app::AppExit, prelude::*};
 use structopt::StructOpt;
 
-use crate::{arguments::Opt, config::CONFIG, simulation2d::resources::GenerationCount};
+use crate::{
+    arguments::Opt,
+    simulation2d::{
+        events::{FinishedEvaluatingEvent, StartEvaluatingEvent},
+        resources::GenerationCount,
+    },
+};
 
 use super::{
     algorithms::{
@@ -11,12 +17,6 @@ use super::{
 };
 
 pub struct GeneticAlgorithmPlugin;
-
-pub struct StartEvaluatingEvent;
-
-pub struct FinishedEvaluatingEvent {
-    pub chromosome: CreatureChromosome,
-}
 
 #[derive(Default)]
 struct FinishedEvaluatingCounter(usize);
@@ -56,11 +56,10 @@ impl Plugin for GeneticAlgorithmPlugin {
             });
         }
         app.insert_resource(FinishedEvaluatingCounter::default())
-            .add_event::<StartEvaluatingEvent>()
-            .add_event::<FinishedEvaluatingEvent>()
             .add_startup_system(setup_genetic_algorithm.system())
             .add_system(count_finished_evaluating.system())
-            .add_system(genetic_algorithm_system.system());
+            .add_system(genetic_algorithm_system.system())
+            .add_system(check_should_end_simulation.system());
     }
 }
 
@@ -70,7 +69,9 @@ fn setup_genetic_algorithm(
 ) {
     ga.algorithm.initialize_population();
     ga.algorithm.reproduction();
-    start_evaluating_events.send(StartEvaluatingEvent)
+    start_evaluating_events.send(StartEvaluatingEvent {
+        chromosomes: ga.algorithm.get_population_for_sim(),
+    })
 }
 
 fn genetic_algorithm_system(
@@ -85,7 +86,9 @@ fn genetic_algorithm_system(
         ga.algorithm.selection();
         ga.algorithm.reproduction();
         generation_count.0 += 1;
-        start_evaluating_events.send(StartEvaluatingEvent);
+        start_evaluating_events.send(StartEvaluatingEvent {
+            chromosomes: ga.algorithm.get_population_for_sim(),
+        });
     }
 }
 
@@ -96,4 +99,13 @@ fn count_finished_evaluating(
     for event in finished_evaluating_events.iter() {
         ga.algorithm.finished_evaluating(event.chromosome.clone());
     }
+}
+
+fn check_should_end_simulation(
+    ga: Res<GeneticAlgorithm>,
+    mut app_exit_events: EventWriter<AppExit>,
+) {
+    if ga.algorithm.get_should_end() {
+        app_exit_events.send(AppExit);
+    };
 }

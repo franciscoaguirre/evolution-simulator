@@ -38,7 +38,7 @@ impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
         crossover_chance: f32,
     ) {
         let (mut first_child, mut second_child) =
-            first_parent.breed(&second_parent, crossover_chance);
+            first_parent.breed(second_parent, crossover_chance);
 
         first_child = first_child.mutate(mutation_chance);
         second_child = second_child.mutate(mutation_chance);
@@ -69,13 +69,13 @@ impl<T: Individual + Selective + Default> SpeciesBasedAlgorithm<T> {
 }
 
 impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorithm<T> {
-    fn get_population_for_sim(&self) -> Box<dyn Iterator<Item = &T> + '_> {
-        Box::new(
-            self.population
-                .values()
-                .flatten()
-                .chain(self.offspring_population.iter()),
-        )
+    fn get_population_for_sim(&self) -> Vec<T> {
+        self.population
+            .values()
+            .flatten()
+            .chain(self.offspring_population.iter())
+            .cloned()
+            .collect()
     }
 
     fn initialize_population(&mut self) {
@@ -86,7 +86,7 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
         for chromosome in initial_population {
             self.population
                 .entry(chromosome.characteristic())
-                .or_insert(Vec::new())
+                .or_insert_with(Vec::new)
                 .push(chromosome);
         }
     }
@@ -102,7 +102,7 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
         for individual in flatten_population {
             self.population
                 .entry(individual.characteristic())
-                .or_insert(Vec::new())
+                .or_insert_with(Vec::new)
                 .push(individual.clone());
         }
     }
@@ -204,7 +204,7 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
         for chromosome in self.new_population.iter() {
             self.population
                 .entry(chromosome.characteristic())
-                .or_insert(Vec::new())
+                .or_insert_with(Vec::new)
                 .push(chromosome.clone());
         }
         self.new_population.clear();
@@ -256,39 +256,35 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
             std_dev_string
         );
 
-        stream.write(b"Best: ").unwrap();
+        stream.write_all(b"Best: ").unwrap();
         stream
-            .write(
+            .write_all(
                 to_string_pretty(&best, pretty_config.clone())
                     .unwrap()
                     .as_bytes(),
             )
             .unwrap();
-        stream.write(b"\n").unwrap();
-        stream.write(b"Worst: ").unwrap();
+        stream.write_all(b"\n").unwrap();
+        stream.write_all(b"Worst: ").unwrap();
         stream
-            .write(
+            .write_all(
                 to_string_pretty(&worst, pretty_config.clone())
                     .unwrap()
                     .as_bytes(),
             )
             .unwrap();
-        stream.write(b"\n").unwrap();
-        stream.write(b"Median: ").unwrap();
+        stream.write_all(b"\n").unwrap();
+        stream.write_all(b"Median: ").unwrap();
         stream
-            .write(
-                to_string_pretty(median, pretty_config.clone())
-                    .unwrap()
-                    .as_bytes(),
-            )
+            .write_all(to_string_pretty(median, pretty_config).unwrap().as_bytes())
             .unwrap();
-        stream.write(b"\n").unwrap();
-        stream.write(b"Mean: ").unwrap();
-        stream.write(mean_string.as_bytes()).unwrap();
-        stream.write(b"\n").unwrap();
-        stream.write(b"Std. Dev.: ").unwrap();
-        stream.write(std_dev_string.as_bytes()).unwrap();
-        stream.write(b"\n").unwrap();
+        stream.write_all(b"\n").unwrap();
+        stream.write_all(b"Mean: ").unwrap();
+        stream.write_all(mean_string.as_bytes()).unwrap();
+        stream.write_all(b"\n").unwrap();
+        stream.write_all(b"Std. Dev.: ").unwrap();
+        stream.write_all(std_dev_string.as_bytes()).unwrap();
+        stream.write_all(b"\n").unwrap();
         stream.flush().unwrap();
     }
 
