@@ -21,16 +21,19 @@ pub struct Algorithm<T: Individual> {
 
     mutation_chance: f32,
     crossover_chance: f32,
+    population_size: usize,
 }
 
 impl<T: Individual + Default> Algorithm<T> {
     pub fn new(
+        population_size: usize,
         max_generations: usize,
         max_no_improvement: usize,
         mutation_chance: f32,
         crossover_chance: f32,
     ) -> Self {
         Algorithm {
+            population_size,
             max_generations,
             max_no_improvement,
             mutation_chance,
@@ -49,17 +52,17 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
         )
     }
 
-    fn initialize_population(&mut self, population_size: usize) {
+    fn initialize_population(&mut self) {
         self.current_generation = 0;
         self.current_unbeat_best = (std::f32::MIN, 0);
-        self.population = (0..population_size).map(|_| T::random()).collect();
+        self.population = (0..self.population_size).map(|_| T::random()).collect();
     }
 
-    fn selection(&mut self, population_size: usize) {
+    fn selection(&mut self) {
         self.population
             .sort_by(|a, b| b.get_fitness().partial_cmp(&a.get_fitness()).unwrap());
 
-        self.population = self.population[0..population_size].to_vec();
+        self.population = self.population[0..self.population_size].to_vec();
     }
 
     fn reproduction(&mut self) {
@@ -96,8 +99,8 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
         self.new_population.push(chromosome);
     }
 
-    fn all_have_finished_evaluating(&self, population_size: usize) -> bool {
-        self.new_population.len() == population_size * 2
+    fn all_have_finished_evaluating(&self) -> bool {
+        self.new_population.len() == self.population_size * 2
     }
 
     fn save_results(&self, generation_count: usize) {

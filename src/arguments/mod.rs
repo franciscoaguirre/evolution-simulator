@@ -32,4 +32,9 @@ pub struct Opt {
     /// with default value of 0.5
     #[structopt(short = "x", long = "crossover", default_value = "0.5")]
     pub crossover_chance: f32,
+
+    /// Set number of population
+    /// with default value of 100
+    #[structopt(short, long, default_value = "100")]
+    pub population_size: usize,
 }

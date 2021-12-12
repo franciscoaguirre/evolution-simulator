@@ -20,7 +20,6 @@
   max_contracted_time: 1.0,
 
   // Genetic algorithm settings
-  population_size: 100,
   max_unchanged_generations: 10,
   improvement_threshold: 0.05,
 

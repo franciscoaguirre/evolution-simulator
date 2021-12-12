@@ -28,7 +28,6 @@ pub struct Config {
     pub max_contracted_time: f32,
 
     // Genetic algorithm settings
-    pub population_size: usize,
     pub max_unchanged_generations: usize,
     pub improvement_threshold: f32,
 
@@ -60,7 +59,6 @@ impl Default for Config {
             min_contracted_time: 0.1,
             max_contracted_time: 1.0,
 
-            population_size: 100,
             max_unchanged_generations: 10,
             improvement_threshold: 0.05,
 

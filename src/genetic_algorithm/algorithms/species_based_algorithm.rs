@@ -26,6 +26,7 @@ pub struct SpeciesBasedAlgorithm<T: Individual + Selective> {
     current_generation: usize,
     mutation_chance: f32,
     crossover_chance: f32,
+    population_size: usize,
 }
 
 impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
@@ -50,12 +51,14 @@ impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
 
 impl<T: Individual + Selective + Default> SpeciesBasedAlgorithm<T> {
     pub fn new(
+        population_size: usize,
         max_generations: usize,
         max_no_improvement: usize,
         mutation_chance: f32,
         crossover_chance: f32,
     ) -> Self {
         SpeciesBasedAlgorithm {
+            population_size,
             max_generations,
             max_no_improvement,
             mutation_chance,
@@ -75,10 +78,10 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
         )
     }
 
-    fn initialize_population(&mut self, population_size: usize) {
+    fn initialize_population(&mut self) {
         self.current_generation = 0;
         self.current_unbeat_best = (std::f32::MIN, 0);
-        let initial_population: Vec<T> = (0..population_size).map(|_| T::random()).collect();
+        let initial_population: Vec<T> = (0..self.population_size).map(|_| T::random()).collect();
 
         for chromosome in initial_population {
             self.population
@@ -88,13 +91,13 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
         }
     }
 
-    fn selection(&mut self, population_size: usize) {
+    fn selection(&mut self) {
         let population = self.population.clone();
         self.population.clear();
         let mut flatten_population = population.values().flatten().collect::<Vec<&T>>();
 
         flatten_population.sort_by(|a, b| b.get_fitness().partial_cmp(&a.get_fitness()).unwrap());
-        flatten_population.truncate(population_size);
+        flatten_population.truncate(self.population_size);
 
         for individual in flatten_population {
             self.population
@@ -215,8 +218,8 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
         self.new_population.push(chromosome);
     }
 
-    fn all_have_finished_evaluating(&self, population_size: usize) -> bool {
-        self.new_population.len() == population_size * 2
+    fn all_have_finished_evaluating(&self) -> bool {
+        self.new_population.len() == self.population_size * 2
     }
 
     fn save_results(&self, generation_count: usize) {

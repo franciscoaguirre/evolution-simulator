@@ -36,6 +36,7 @@ impl Plugin for GeneticAlgorithmPlugin {
             println!("Running speciesism GA");
             app.insert_resource(GeneticAlgorithm {
                 algorithm: Box::new(CreatureSpeciesGA::new(
+                    options.population_size,
                     options.max_generations,
                     options.max_no_improvement,
                     options.mutation_chance,
@@ -46,6 +47,7 @@ impl Plugin for GeneticAlgorithmPlugin {
             println!("Running regular speciesism GA");
             app.insert_resource(GeneticAlgorithm {
                 algorithm: Box::new(CreatureGA::new(
+                    options.population_size,
                     options.max_generations,
                     options.max_no_improvement,
                     options.mutation_chance,
@@ -66,7 +68,7 @@ fn setup_genetic_algorithm(
     mut ga: ResMut<GeneticAlgorithm>,
     mut start_evaluating_events: EventWriter<StartEvaluatingEvent>,
 ) {
-    ga.algorithm.initialize_population(CONFIG.population_size);
+    ga.algorithm.initialize_population();
     ga.algorithm.reproduction();
     start_evaluating_events.send(StartEvaluatingEvent)
 }
@@ -76,14 +78,11 @@ fn genetic_algorithm_system(
     mut start_evaluating_events: EventWriter<StartEvaluatingEvent>,
     mut generation_count: ResMut<GenerationCount>,
 ) {
-    if ga
-        .algorithm
-        .all_have_finished_evaluating(CONFIG.population_size)
-    {
+    if ga.algorithm.all_have_finished_evaluating() {
         ga.algorithm.save_results(generation_count.0);
 
         ga.algorithm.replacement();
-        ga.algorithm.selection(CONFIG.population_size);
+        ga.algorithm.selection();
         ga.algorithm.reproduction();
         generation_count.0 += 1;
         start_evaluating_events.send(StartEvaluatingEvent);
