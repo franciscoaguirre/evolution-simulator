@@ -3,3 +3,4 @@ config.ron
 chromosome.ron
 trace-*
 results_generation_*
+population_*

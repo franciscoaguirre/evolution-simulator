@@ -4,7 +4,7 @@ use structopt::StructOpt;
 use crate::{
     arguments::Opt,
     simulation2d::{
-        events::{FinishedEvaluatingEvent, StartEvaluatingEvent},
+        events::{FinishedEvaluatingEvent, InitializeEvent, StartEvaluatingEvent},
         resources::GenerationCount,
     },
 };
@@ -41,6 +41,8 @@ impl Plugin for GeneticAlgorithmPlugin {
                     options.max_no_improvement,
                     options.mutation_chance,
                     options.crossover_chance,
+                    options.test,
+                    options.test_count,
                 )),
             });
         } else {
@@ -52,18 +54,39 @@ impl Plugin for GeneticAlgorithmPlugin {
                     options.max_no_improvement,
                     options.mutation_chance,
                     options.crossover_chance,
+                    options.test,
+                    options.test_count,
                 )),
             });
         }
         app.insert_resource(FinishedEvaluatingCounter::default())
-            .add_startup_system(setup_genetic_algorithm.system())
+            .add_startup_system(startup_genetic_algorithm.system())
             .add_system(count_finished_evaluating.system())
+            .add_system(reinitialize_genetic_algorithm.system())
             .add_system(genetic_algorithm_system.system())
             .add_system(check_should_end_simulation.system());
     }
 }
 
-fn setup_genetic_algorithm(
+fn startup_genetic_algorithm(
+    ga: ResMut<GeneticAlgorithm>,
+    start_evaluating_events: EventWriter<StartEvaluatingEvent>,
+) {
+    setup_ga(ga, start_evaluating_events);
+}
+
+fn reinitialize_genetic_algorithm(
+    ga: ResMut<GeneticAlgorithm>,
+    start_evaluating_events: EventWriter<StartEvaluatingEvent>,
+    mut initialize_events: EventReader<InitializeEvent>,
+) {
+    if initialize_events.iter().count() > 0 {
+        println!("Reinitializing genetic algorithm");
+        setup_ga(ga, start_evaluating_events);
+    }
+}
+
+fn setup_ga(
     mut ga: ResMut<GeneticAlgorithm>,
     mut start_evaluating_events: EventWriter<StartEvaluatingEvent>,
 ) {
@@ -104,8 +127,15 @@ fn count_finished_evaluating(
 fn check_should_end_simulation(
     ga: Res<GeneticAlgorithm>,
     mut app_exit_events: EventWriter<AppExit>,
+    mut reinitialize_genetic_algorithm: EventWriter<InitializeEvent>,
 ) {
     if ga.algorithm.get_should_end() {
+        println!("GA ended");
+        if ga.algorithm.is_testing() && !ga.algorithm.should_finish_testing() {
+            reinitialize_genetic_algorithm.send(InitializeEvent);
+            return;
+        }
+
         app_exit_events.send(AppExit);
     };
 }

@@ -4,3 +4,4 @@ pub mod muscle_phenotype;
 pub mod node_phenotype;
 pub mod operations;
 pub mod plugin;
+pub mod write_stat;
