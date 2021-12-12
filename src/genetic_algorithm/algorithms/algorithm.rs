@@ -5,7 +5,10 @@ use std::{
 
 use ron::ser::{to_string_pretty, PrettyConfig};
 
-use crate::genetic_algorithm::operations::Individual;
+use crate::genetic_algorithm::{
+    operations::Individual,
+    write_stat::{write_stat, InstanceStats},
+};
 
 use super::runner::Runnable;
 
@@ -22,6 +25,10 @@ pub struct Algorithm<T: Individual> {
     mutation_chance: f32,
     crossover_chance: f32,
     population_size: usize,
+    testing: bool,
+    max_test_count: usize,
+    testing_count: usize,
+    instance_stats: InstanceStats,
 }
 
 impl<T: Individual + Default> Algorithm<T> {
@@ -31,6 +38,8 @@ impl<T: Individual + Default> Algorithm<T> {
         max_no_improvement: usize,
         mutation_chance: f32,
         crossover_chance: f32,
+        testing: bool,
+        max_test_count: usize,
     ) -> Self {
         Algorithm {
             population_size,
@@ -38,6 +47,8 @@ impl<T: Individual + Default> Algorithm<T> {
             max_no_improvement,
             mutation_chance,
             crossover_chance,
+            testing,
+            max_test_count,
             ..Default::default()
         }
     }
@@ -52,9 +63,23 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
             .collect()
     }
 
+    fn is_testing(&self) -> bool {
+        self.testing
+    }
+
+    fn should_finish_testing(&self) -> bool {
+        self.testing_count >= self.max_test_count
+    }
+
     fn initialize_population(&mut self) {
+        self.instance_stats = InstanceStats::default();
         self.current_generation = 0;
         self.current_unbeat_best = (std::f32::MIN, 0);
+        self.testing_count += 1;
+
+        self.offspring_population.clear();
+        self.new_population.clear();
+
         self.population = (0..self.population_size).map(|_| T::random()).collect();
     }
 
@@ -94,6 +119,12 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
     fn finished_evaluating(&mut self, chromosome: T) {
         if chromosome.get_fitness() > self.current_unbeat_best.0 {
             self.current_unbeat_best = (chromosome.get_fitness(), self.current_generation);
+
+            if self.testing {
+                self.instance_stats.best_fitness = chromosome.get_fitness();
+                self.instance_stats.best_fitness_sum += chromosome.get_fitness();
+                self.instance_stats.generation_count = self.current_generation;
+            }
         }
 
         self.new_population.push(chromosome);
@@ -142,6 +173,34 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
             mean_string,
             std_dev_string
         );
+
+        if self.testing {
+            write_stat(
+                format!(
+                    "population_{}_mutation_{}_crossover_{}/instance_{}/generation_{}.ron",
+                    self.new_population.len(),
+                    self.mutation_chance,
+                    self.crossover_chance,
+                    self.testing_count,
+                    generation_count
+                ),
+                best.get_fitness(),
+                median.get_fitness(),
+                worst.get_fitness(),
+                mean,
+                std_dev,
+            );
+
+            self.instance_stats.write(format!(
+                "population_{}_mutation_{}_crossover_{}/instance_{}/stats.ron",
+                self.new_population.len(),
+                self.mutation_chance,
+                self.crossover_chance,
+                self.testing_count,
+            ));
+
+            return;
+        }
 
         let buffer = File::create(format!("results_generation_{}.ron", generation_count)).unwrap();
         let mut stream = BufWriter::new(buffer);

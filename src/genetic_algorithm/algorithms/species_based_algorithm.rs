@@ -9,7 +9,10 @@ use ron::ser::{to_string_pretty, PrettyConfig};
 
 use crate::{
     config::CONFIG,
-    genetic_algorithm::operations::{Individual, Selective},
+    genetic_algorithm::{
+        operations::{Individual, Selective},
+        write_stat::{write_stat, InstanceStats},
+    },
 };
 
 use super::runner::Runnable;
@@ -27,6 +30,10 @@ pub struct SpeciesBasedAlgorithm<T: Individual + Selective> {
     mutation_chance: f32,
     crossover_chance: f32,
     population_size: usize,
+    testing: bool,
+    max_test_count: usize,
+    testing_count: usize,
+    instance_stats: InstanceStats,
 }
 
 impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
@@ -56,6 +63,8 @@ impl<T: Individual + Selective + Default> SpeciesBasedAlgorithm<T> {
         max_no_improvement: usize,
         mutation_chance: f32,
         crossover_chance: f32,
+        testing: bool,
+        max_test_count: usize,
     ) -> Self {
         SpeciesBasedAlgorithm {
             population_size,
@@ -63,6 +72,8 @@ impl<T: Individual + Selective + Default> SpeciesBasedAlgorithm<T> {
             max_no_improvement,
             mutation_chance,
             crossover_chance,
+            testing,
+            max_test_count,
             ..Default::default()
         }
     }
@@ -78,9 +89,24 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
             .collect()
     }
 
+    fn is_testing(&self) -> bool {
+        self.testing
+    }
+
+    fn should_finish_testing(&self) -> bool {
+        self.testing_count >= self.max_test_count
+    }
+
     fn initialize_population(&mut self) {
+        self.instance_stats = InstanceStats::default();
         self.current_generation = 0;
+        self.testing_count += 1;
         self.current_unbeat_best = (std::f32::MIN, 0);
+        self.population.clear();
+        self.offspring_population.clear();
+        self.new_population.clear();
+        self.previous_best_by_species.clear();
+
         let initial_population: Vec<T> = (0..self.population_size).map(|_| T::random()).collect();
 
         for chromosome in initial_population {
@@ -213,6 +239,12 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
     fn finished_evaluating(&mut self, chromosome: T) {
         if chromosome.get_fitness() > self.current_unbeat_best.0 {
             self.current_unbeat_best = (chromosome.get_fitness(), self.current_generation);
+
+            if self.testing {
+                self.instance_stats.best_fitness = chromosome.get_fitness();
+                self.instance_stats.best_fitness_sum += chromosome.get_fitness();
+                self.instance_stats.generation_count = self.current_generation;
+            }
         }
 
         self.new_population.push(chromosome);
@@ -255,6 +287,34 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
             mean_string,
             std_dev_string
         );
+
+        if self.testing {
+            write_stat(
+                format!(
+                    "population_{}_mutation_{}_crossover_{}/instance_{}/generation_{}.ron",
+                    self.new_population.len(),
+                    self.mutation_chance,
+                    self.crossover_chance,
+                    self.testing_count,
+                    generation_count
+                ),
+                best.get_fitness(),
+                median.get_fitness(),
+                worst.get_fitness(),
+                mean,
+                std_dev,
+            );
+
+            self.instance_stats.write(format!(
+                "population_{}_mutation_{}_crossover_{}/instance_{}/stats.ron",
+                self.new_population.len(),
+                self.mutation_chance,
+                self.crossover_chance,
+                self.testing_count,
+            ));
+
+            return;
+        }
 
         stream.write_all(b"Best: ").unwrap();
         stream

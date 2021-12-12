@@ -32,4 +32,8 @@ pub trait Runnable<T: Individual> {
     fn get_population_for_sim(&self) -> Vec<T>;
 
     fn get_should_end(&self) -> bool;
+
+    fn is_testing(&self) -> bool;
+
+    fn should_finish_testing(&self) -> bool;
 }

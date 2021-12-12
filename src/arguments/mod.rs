@@ -23,12 +23,12 @@ pub struct Opt {
 
     /// Set chance of mutation for genes
     /// with default value of 0.1
-    #[structopt(short = "mc", long = "mutation", default_value = "0.1")]
+    #[structopt(long = "mutation", default_value = "0.1")]
     pub mutation_chance: f32,
 
     /// Set chance for crossover
     /// with default value of 0.5
-    #[structopt(short = "cc", long = "crossover", default_value = "0.5")]
+    #[structopt(long = "crossover", default_value = "0.5")]
     pub crossover_chance: f32,
 
     /// Set number of population
@@ -39,4 +39,15 @@ pub struct Opt {
     /// Whether or not the playground should be run instead of the ga
     #[structopt(long)]
     pub playground: bool,
+
+    /// Set if testing algorithm
+    /// with default value of false
+    #[structopt(long = "test")]
+    pub test: bool,
+
+    /// Set testing count
+    /// with default value of 10
+    /// only used if test is true
+    #[structopt(long = "test-count", default_value = "10")]
+    pub test_count: usize,
 }

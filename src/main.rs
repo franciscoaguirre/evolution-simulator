@@ -40,8 +40,6 @@ fn setup(
 }
 
 fn camera_movement(keys: Res<Input<KeyCode>>, mut camera: ResMut<CameraTransform>) {
-    dbg!(camera.relative_zoom);
-
     const MIN_ZOOM: f32 = 0.001;
     const MAX_ZOOM: f32 = 1.0;
     const MOUSE_ZOOM_RATIO: f32 = 0.005;

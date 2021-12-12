@@ -7,3 +7,5 @@ pub struct StartEvaluatingEvent {
 pub struct FinishedEvaluatingEvent {
     pub chromosome: CreatureChromosome,
 }
+
+pub struct InitializeEvent;

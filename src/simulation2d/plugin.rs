@@ -8,7 +8,7 @@ use crate::{arguments::Opt, config::CONFIG};
 
 use super::{
     creature::{create_creature, create_creature_headless, Creature},
-    events::{FinishedEvaluatingEvent, StartEvaluatingEvent},
+    events::{FinishedEvaluatingEvent, InitializeEvent, StartEvaluatingEvent},
     muscle::MusclePlugin,
     node,
     physics::PhysicsPlugin,
@@ -23,6 +23,7 @@ impl Plugin for SimulationPlugin {
             .add_plugin(PhysicsPlugin)
             .add_event::<StartEvaluatingEvent>()
             .add_event::<FinishedEvaluatingEvent>()
+            .add_event::<InitializeEvent>()
             .insert_resource(EvaluationStopwatch::default())
             .insert_resource(GenerationCount::default())
             .insert_resource(RealTimeStopwatch::default())
@@ -48,6 +49,7 @@ impl Plugin for SimulationPlugin {
 
 fn simulate(
     mut commands: Commands,
+    creatures: Query<Entity, With<Creature>>,
     mut start_evaluating_events: EventReader<StartEvaluatingEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
@@ -59,6 +61,10 @@ fn simulate(
 
     for event in start_evaluating_events.iter() {
         for chromosome in event.chromosomes.iter() {
+            for entity in creatures.iter() {
+                commands.entity(entity).despawn_recursive();
+            }
+
             create_creature(
                 &mut commands,
                 chromosome.clone(),
@@ -76,6 +82,7 @@ fn simulate(
 
 fn simulate_headless(
     mut commands: Commands,
+    creatures: Query<Entity, With<Creature>>,
     mut start_evaluating_events: EventReader<StartEvaluatingEvent>,
     mut stopwatch: ResMut<EvaluationStopwatch>,
     mut real_stopwatch: ResMut<RealTimeStopwatch>,
@@ -84,11 +91,15 @@ fn simulate_headless(
     let _guard = span.enter();
 
     for event in start_evaluating_events.iter() {
+        for entity in creatures.iter() {
+            commands.entity(entity).despawn_recursive();
+        }
+
         for chromosome in event.chromosomes.iter() {
             create_creature_headless(&mut commands, chromosome.clone(), CONFIG.node_size);
         }
 
-        println!("Time spent: {}", real_stopwatch.0.elapsed().as_millis());
+        println!("Time spent: {:?}", real_stopwatch.0.elapsed());
         stopwatch.0.reset();
         stopwatch.0.unpause();
 
