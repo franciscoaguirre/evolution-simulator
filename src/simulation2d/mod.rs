@@ -1,4 +1,3 @@
-pub mod constants;
 pub mod creature;
 pub mod muscle;
 pub mod node;

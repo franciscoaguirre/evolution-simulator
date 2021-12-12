@@ -1,0 +1,31 @@
+(
+  // World settings
+  time_scale: 5.0,
+  fixed_time_step: 0.01,
+  evaluation_time: 15.0,
+  gravity: 10.0,
+  air_friction: 8.0,
+  node_size: 0.08,
+
+  // Min and max values settings
+  min_friction: 0.3,
+  max_friction: 1.0,
+  min_strength: 0.5,
+  max_strength: 10.0,
+  min_contracted_length: 0.08,
+  max_contracted_length: 0.40,
+  min_extended_length: 0.08,
+  max_extended_length: 0.40,
+  min_contracted_time: 0.1,
+  max_contracted_time: 1.0,
+
+  // Genetic algorithm settings
+  max_unchanged_generations: 10,
+  improvement_threshold: 0.05,
+
+  // Mutation settings
+  elimination_mutation_chance_modifier: 0.5,
+  position_mutation_chance_modifier: 1.0,
+  single_value_mutation_chance_modifier: 1.0,
+  creation_mutation_chance_modifier: 3.0,
+)
