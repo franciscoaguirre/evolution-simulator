@@ -14,10 +14,10 @@ pub struct NodePhenotype {
 }
 
 impl Crossable for NodePhenotype {
-    fn cross(&self, other: &Self) -> Self {
+    fn cross(&self, other: &Self, chance: f32) -> Self {
         NodePhenotype {
             position: self.position.lerp(other.position, 0.5),
-            friction: if rand::random() {
+            friction: if rand::random::<f32>() > chance {
                 self.friction
             } else {
                 other.friction

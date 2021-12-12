@@ -39,6 +39,7 @@ impl Plugin for GeneticAlgorithmPlugin {
                     options.max_generations,
                     options.max_no_improvement,
                     options.mutation_chance,
+                    options.crossover_chance,
                 )),
             });
         } else {
@@ -48,6 +49,7 @@ impl Plugin for GeneticAlgorithmPlugin {
                     options.max_generations,
                     options.max_no_improvement,
                     options.mutation_chance,
+                    options.crossover_chance,
                 )),
             });
         }

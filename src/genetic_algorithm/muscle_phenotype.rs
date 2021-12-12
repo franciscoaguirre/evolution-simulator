@@ -23,29 +23,29 @@ pub struct MusclePhenotype {
 
 impl Crossable for MusclePhenotype {
     /// Crosses two MusclePhenotypes. Verify that nodes are present in both parents
-    fn cross(&self, other: &Self) -> Self {
+    fn cross(&self, other: &Self, chance: f32) -> Self {
         MusclePhenotype {
-            contracted_time: if rand::random() {
+            contracted_time: if rand::random::<f32>() > chance {
                 self.contracted_time
             } else {
                 other.contracted_time
             },
-            extended_length: if rand::random() {
+            extended_length: if rand::random::<f32>() > chance {
                 self.extended_length
             } else {
                 other.extended_length
             },
-            contracted_length: if rand::random() {
+            contracted_length: if rand::random::<f32>() > chance {
                 self.contracted_length
             } else {
                 other.contracted_length
             },
-            strength: if rand::random() {
+            strength: if rand::random::<f32>() > chance {
                 self.strength
             } else {
                 other.strength
             },
-            nodes: if rand::random() {
+            nodes: if rand::random::<f32>() > chance {
                 self.nodes
             } else {
                 other.nodes

@@ -25,6 +25,7 @@ pub struct SpeciesBasedAlgorithm<T: Individual + Selective> {
     new_population: Vec<T>,
     current_generation: usize,
     mutation_chance: f32,
+    crossover_chance: f32,
 }
 
 impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
@@ -33,8 +34,10 @@ impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
         second_parent: &T,
         offspring_population: &mut Vec<T>,
         mutation_chance: f32,
+        crossover_chance: f32,
     ) {
-        let (mut first_child, mut second_child) = first_parent.breed(&second_parent);
+        let (mut first_child, mut second_child) =
+            first_parent.breed(&second_parent, crossover_chance);
 
         first_child = first_child.mutate(mutation_chance);
         second_child = second_child.mutate(mutation_chance);
@@ -46,11 +49,17 @@ impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
 }
 
 impl<T: Individual + Selective + Default> SpeciesBasedAlgorithm<T> {
-    pub fn new(max_generations: usize, max_no_improvement: usize, mutation_chance: f32) -> Self {
+    pub fn new(
+        max_generations: usize,
+        max_no_improvement: usize,
+        mutation_chance: f32,
+        crossover_chance: f32,
+    ) -> Self {
         SpeciesBasedAlgorithm {
             max_generations,
             max_no_improvement,
             mutation_chance,
+            crossover_chance,
             ..Default::default()
         }
     }
@@ -129,6 +138,7 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
                         second_parent,
                         &mut offspring_population,
                         self.mutation_chance,
+                        self.crossover_chance,
                     );
                 }
             } else {
@@ -163,6 +173,7 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
                         second_parent,
                         &mut offspring_population,
                         self.mutation_chance,
+                        self.crossover_chance,
                     );
                 }
             }
@@ -176,6 +187,7 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
                     second_parent,
                     &mut offspring_population,
                     self.mutation_chance,
+                    self.crossover_chance,
                 );
             }
         }

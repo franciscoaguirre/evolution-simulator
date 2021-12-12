@@ -168,19 +168,19 @@ impl CreatureChromosome {
 }
 
 impl Crossable for CreatureChromosome {
-    fn cross(&self, other: &Self) -> Self {
+    fn cross(&self, other: &Self, chance: f32) -> Self {
         CreatureChromosome {
             nodes: self
                 .nodes
                 .iter()
                 .zip(other.nodes.iter())
-                .map(|(a, b)| a.cross(b))
+                .map(|(a, b)| a.cross(b, chance))
                 .collect(),
             muscles: self
                 .muscles
                 .iter()
                 .zip(other.muscles.iter())
-                .map(|(a, b)| a.cross(b))
+                .map(|(a, b)| a.cross(b, chance))
                 .collect(),
             ..Default::default()
         }
@@ -188,11 +188,11 @@ impl Crossable for CreatureChromosome {
 }
 
 impl Breedable for CreatureChromosome {
-    fn breed(&self, other: &Self) -> (Self, Self)
+    fn breed(&self, other: &Self, chance: f32) -> (Self, Self)
     where
         Self: Sized,
     {
-        (self.cross(other), self.cross(other))
+        (self.cross(other, chance), self.cross(other, chance))
     }
 }
 

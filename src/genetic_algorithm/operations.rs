@@ -2,14 +2,14 @@ use serde::Serialize;
 
 pub trait Breedable {
     /// Breed two parents to produce two children.
-    fn breed(&self, other: &Self) -> (Self, Self)
+    fn breed(&self, other: &Self, chance: f32) -> (Self, Self)
     where
         Self: Sized;
 }
 
 pub trait Crossable {
     /// Cross two crossable objects to create a child
-    fn cross(&self, other: &Self) -> Self;
+    fn cross(&self, other: &Self, chance: f32) -> Self;
 }
 
 pub trait Mutable {
