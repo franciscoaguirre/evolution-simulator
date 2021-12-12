@@ -11,7 +11,9 @@ mod arguments;
 mod config;
 mod simulation2d;
 
-use simulation2d::{plane::create_plane, plugin::SimulationPlugin, ui::UIPlugin};
+use simulation2d::{
+    plane::create_plane, playground::PlaygroundPlugin, plugin::SimulationPlugin, ui::UIPlugin,
+};
 
 mod genetic_algorithm;
 use genetic_algorithm::plugin::GeneticAlgorithmPlugin;
@@ -38,6 +40,8 @@ fn setup(
 }
 
 fn camera_movement(keys: Res<Input<KeyCode>>, mut camera: ResMut<CameraTransform>) {
+    dbg!(camera.relative_zoom);
+
     const MIN_ZOOM: f32 = 0.001;
     const MAX_ZOOM: f32 = 1.0;
     const MOUSE_ZOOM_RATIO: f32 = 0.005;
@@ -83,15 +87,14 @@ fn move_camera(
         return;
     }
 
-    for (mut camera, mut transform) in cameras.iter_mut() {
-        camera.scale = DEFAULT_ZOOM + camera_transform.relative_zoom;
+    let (mut projection, mut transform) = cameras.single_mut().unwrap();
+    projection.scale = DEFAULT_ZOOM + camera_transform.relative_zoom;
 
-        transform.translation = Vec3::new(
-            camera_transform.position.x,
-            camera_transform.position.y,
-            0.0,
-        );
-    }
+    transform.translation = Vec3::new(
+        camera_transform.position.x,
+        camera_transform.position.y,
+        0.0,
+    );
 }
 
 struct ScopeCall<F: FnOnce()> {
@@ -142,8 +145,13 @@ fn main() {
             .add_plugin(UIPlugin);
     }
 
-    app.add_plugin(SimulationPlugin)
-        .add_plugin(GeneticAlgorithmPlugin);
+    if options.playground {
+        app.add_plugin(PlaygroundPlugin);
+    } else {
+        app.add_plugin(GeneticAlgorithmPlugin);
+    }
+
+    app.add_plugin(SimulationPlugin);
 
     app.run();
 }

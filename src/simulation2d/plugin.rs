@@ -1,17 +1,14 @@
 use std::time::Duration;
 
-use bevy::{app::AppExit, core::FixedTimestep, prelude::*};
+use bevy::{core::FixedTimestep, prelude::*};
 
 use structopt::StructOpt;
 
-use crate::{
-    arguments::Opt,
-    config::CONFIG,
-    genetic_algorithm::plugin::{FinishedEvaluatingEvent, GeneticAlgorithm, StartEvaluatingEvent},
-};
+use crate::{arguments::Opt, config::CONFIG};
 
 use super::{
     creature::{create_creature, create_creature_headless, Creature},
+    events::{FinishedEvaluatingEvent, StartEvaluatingEvent},
     muscle::MusclePlugin,
     node,
     physics::PhysicsPlugin,
@@ -24,6 +21,8 @@ impl Plugin for SimulationPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_plugin(MusclePlugin)
             .add_plugin(PhysicsPlugin)
+            .add_event::<StartEvaluatingEvent>()
+            .add_event::<FinishedEvaluatingEvent>()
             .insert_resource(EvaluationStopwatch::default())
             .insert_resource(GenerationCount::default())
             .insert_resource(RealTimeStopwatch::default())
@@ -35,8 +34,7 @@ impl Plugin for SimulationPlugin {
                         CONFIG.fixed_time_step as f64 / CONFIG.time_scale as f64,
                     ))
                     .with_system(tick_stopwatch.system()),
-            )
-            .add_system(check_should_end_simulation.system());
+            );
 
         let options = Opt::from_args();
 
@@ -49,7 +47,6 @@ impl Plugin for SimulationPlugin {
 }
 
 fn simulate(
-    ga: Res<GeneticAlgorithm>,
     mut commands: Commands,
     mut start_evaluating_events: EventReader<StartEvaluatingEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -60,8 +57,8 @@ fn simulate(
     let span = info_span!("system", name = "simulate");
     let _guard = span.enter();
 
-    for _event in start_evaluating_events.iter() {
-        for chromosome in ga.algorithm.get_population_for_sim() {
+    for event in start_evaluating_events.iter() {
+        for chromosome in event.chromosomes.iter() {
             create_creature(
                 &mut commands,
                 chromosome.clone(),
@@ -78,7 +75,6 @@ fn simulate(
 }
 
 fn simulate_headless(
-    ga: Res<GeneticAlgorithm>,
     mut commands: Commands,
     mut start_evaluating_events: EventReader<StartEvaluatingEvent>,
     mut stopwatch: ResMut<EvaluationStopwatch>,
@@ -87,8 +83,8 @@ fn simulate_headless(
     let span = info_span!("system", name = "simulate");
     let _guard = span.enter();
 
-    for _event in start_evaluating_events.iter() {
-        for chromosome in ga.algorithm.get_population_for_sim() {
+    for event in start_evaluating_events.iter() {
+        for chromosome in event.chromosomes.iter() {
             create_creature_headless(&mut commands, chromosome.clone(), CONFIG.node_size);
         }
 
@@ -155,13 +151,4 @@ fn evaluate_simulation(
     }
 
     stopwatch.0.pause();
-}
-
-fn check_should_end_simulation(
-    ga: Res<GeneticAlgorithm>,
-    mut app_exit_events: EventWriter<AppExit>,
-) {
-    if ga.algorithm.get_should_end() {
-        app_exit_events.send(AppExit);
-    };
 }

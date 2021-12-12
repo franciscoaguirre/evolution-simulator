@@ -1,6 +1,6 @@
 use crate::config::CONFIG;
 
-use super::operations::{Crossable, Mutable, RandomCreatable};
+use super::operations::{Correctable, Crossable, Mutable, RandomCreatable};
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -11,6 +11,26 @@ pub struct NodePhenotype {
     pub position: Vec2,
     /// Resistance of node to movement
     pub friction: f32,
+}
+
+impl Correctable for NodePhenotype {
+    fn correct(&mut self) {
+        self.position = Vec2::new(
+            self.position
+                .x
+                .clamp(-CONFIG.max_extended_length, CONFIG.max_extended_length),
+            self.position.y.clamp(0.04, CONFIG.max_extended_length),
+        );
+        self.friction = self
+            .friction
+            .clamp(CONFIG.min_friction, CONFIG.max_friction);
+    }
+
+    fn is_correct(&self) -> bool {
+        (-CONFIG.max_extended_length..CONFIG.max_extended_length).contains(&self.position.x)
+            && (0.04..CONFIG.max_extended_length).contains(&self.position.y)
+            && (CONFIG.min_friction..CONFIG.max_friction).contains(&self.friction)
+    }
 }
 
 impl Crossable for NodePhenotype {
@@ -52,8 +72,8 @@ impl RandomCreatable for NodePhenotype {
     fn random() -> Self {
         NodePhenotype {
             position: Vec2::new(
-                (rand::random::<f32>() * 2.0 - 1.0) * 0.4,
-                rand::random::<f32>() + 0.04 * 0.4,
+                (rand::random::<f32>() * 2.0 - 1.0) * CONFIG.max_extended_length,
+                rand::random::<f32>() + 0.04 * CONFIG.max_extended_length,
             ),
             friction: rand::random::<f32>().clamp(CONFIG.min_friction, CONFIG.max_friction),
         }

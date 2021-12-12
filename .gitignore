@@ -1,4 +1,5 @@
 /target
 config.ron
+chromosome.ron
 trace-*
 results_generation_*

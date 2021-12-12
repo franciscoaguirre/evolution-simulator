@@ -29,7 +29,7 @@ pub trait Runnable<T: Individual> {
     fn save_results(&self, generation_count: usize);
 
     /// Returns the population inside a vec
-    fn get_population_for_sim(&self) -> Box<dyn Iterator<Item = &T> + '_>;
+    fn get_population_for_sim(&self) -> Vec<T>;
 
     fn get_should_end(&self) -> bool;
 }

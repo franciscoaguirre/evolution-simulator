@@ -13,18 +13,6 @@ pub struct Creature {
     pub internal_clock: Stopwatch,
 }
 
-// #[derive(Bundle)]
-// struct CreatureBundle {
-//     creature: Creature,
-
-//     // We can nest/include another bundle.
-//     // Add the components for a standard Bevy Sprite:
-//     #[bundle]
-//     nodes: Children,
-//     #[bundle]
-//     muscles: Vec::<muscle::MuscleBundle>,
-// }
-
 pub fn create_creature(
     commands: &mut Commands,
     creature_chromosome: CreatureChromosome,

@@ -44,12 +44,12 @@ impl<T: Individual + Default> Algorithm<T> {
 }
 
 impl<T: Individual> Runnable<T> for Algorithm<T> {
-    fn get_population_for_sim(&self) -> Box<dyn Iterator<Item = &T> + '_> {
-        Box::new(
-            self.population
-                .iter()
-                .chain(self.offspring_population.iter()),
-        )
+    fn get_population_for_sim(&self) -> Vec<T> {
+        self.population
+            .iter()
+            .chain(self.offspring_population.iter())
+            .cloned()
+            .collect()
     }
 
     fn initialize_population(&mut self) {

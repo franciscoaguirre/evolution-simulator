@@ -1,6 +1,6 @@
 use crate::config::CONFIG;
 
-use super::operations::{Crossable, Mutable, RandomCreatable};
+use super::operations::{Correctable, Crossable, Mutable, RandomCreatable};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
@@ -19,6 +19,32 @@ pub struct MusclePhenotype {
     pub strength: f32,
     /// The nodes this muscle pulls/pushes
     pub nodes: (usize, usize),
+}
+
+impl Correctable for MusclePhenotype {
+    fn correct(&mut self) {
+        self.contracted_time = self
+            .contracted_time
+            .clamp(CONFIG.min_contracted_time, CONFIG.max_contracted_time);
+        self.extended_length = self
+            .extended_length
+            .clamp(CONFIG.min_extended_length, CONFIG.max_extended_length);
+        self.contracted_length = self
+            .contracted_length
+            .clamp(CONFIG.min_contracted_length, CONFIG.max_contracted_length);
+        self.strength = self
+            .strength
+            .clamp(CONFIG.min_strength, CONFIG.max_strength);
+    }
+
+    fn is_correct(&self) -> bool {
+        (CONFIG.min_contracted_time..CONFIG.max_contracted_time).contains(&self.contracted_time)
+            && (CONFIG.min_extended_length..CONFIG.max_extended_length)
+                .contains(&self.extended_length)
+            && (CONFIG.min_contracted_length..CONFIG.max_contracted_length)
+                .contains(&self.contracted_length)
+            && (CONFIG.min_strength..CONFIG.max_strength).contains(&self.strength)
+    }
 }
 
 impl Crossable for MusclePhenotype {
