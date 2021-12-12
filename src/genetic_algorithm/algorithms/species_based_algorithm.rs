@@ -275,9 +275,6 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
         let mean_string = format!("{:.2}", mean);
         let std_dev_string = format!("{:.2}", std_dev);
 
-        let buffer = File::create(format!("results_generation_{}.ron", generation_count)).unwrap();
-        let mut stream = BufWriter::new(buffer);
-
         println!(
             "Generation {}: Best: {}, Worst: {}, Median: {}, Mean: {}, StdDev: {}",
             generation_count,
@@ -315,6 +312,9 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
 
             return;
         }
+
+        let buffer = File::create(format!("results_generation_{}.ron", generation_count)).unwrap();
+        let mut stream = BufWriter::new(buffer);
 
         stream.write_all(b"Best: ").unwrap();
         stream
