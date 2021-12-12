@@ -11,7 +11,6 @@ use crate::{
 };
 
 use super::{
-    constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS},
     creature::{create_creature, create_creature_headless, Creature},
     muscle::MusclePlugin,
     node,
@@ -33,7 +32,7 @@ impl Plugin for SimulationPlugin {
             .add_system_set(
                 SystemSet::new()
                     .with_run_criteria(FixedTimestep::step(
-                        FIXED_TIME_STEP as f64 / CONFIG.time_scale as f64,
+                        CONFIG.fixed_time_step as f64 / CONFIG.time_scale as f64,
                     ))
                     .with_system(tick_stopwatch.system()),
             )
@@ -107,7 +106,7 @@ fn tick_stopwatch(mut stopwatch: ResMut<EvaluationStopwatch>) {
 
     stopwatch
         .0
-        .tick(Duration::from_nanos(FIXED_TIME_STEP_NANOSECONDS));
+        .tick(Duration::from_nanos((CONFIG.fixed_time_step * 1e9) as u64));
 }
 
 fn real_stopwatch_ticker(mut real_stopwatch: ResMut<RealTimeStopwatch>, time: Res<Time>) {

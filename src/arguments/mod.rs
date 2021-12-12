@@ -22,4 +22,9 @@ pub struct Opt {
     // with default value of 100
     #[structopt(short, long, default_value = "10")]
     pub max_no_improvement: usize,
+
+    /// Set chance of mutation for genes
+    /// with default value of 0.1
+    #[structopt(short = "c", long = "chance", default_value = "0.1")]
+    pub mutation_chance: f32,
 }

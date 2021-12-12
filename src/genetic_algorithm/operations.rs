@@ -15,7 +15,7 @@ pub trait Crossable {
 pub trait Mutable {
     /// Mutate the object
     /// mutation_rate is the amount of mutation to apply
-    fn mutate(&self, mutation_rate: f32) -> Self;
+    fn mutate(&self, chance: f32) -> Self;
 }
 
 pub trait Correctable {

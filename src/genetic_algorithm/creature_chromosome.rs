@@ -1,10 +1,9 @@
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::genetic_algorithm::*;
+use crate::{config::CONFIG, genetic_algorithm::*};
 
 use super::{
-    constants::{CREATION_MUTATION_CHANCE, ELIMINATION_MUTATION_CHANCE},
     muscle_phenotype::MusclePhenotype,
     node_phenotype::NodePhenotype,
     operations::{
@@ -198,31 +197,30 @@ impl Breedable for CreatureChromosome {
 }
 
 impl Mutable for CreatureChromosome {
-    fn mutate(&self, mutation_rate: f32) -> Self {
-        let mut nodes: Vec<NodePhenotype> = self
-            .nodes
-            .iter()
-            .map(|node| node.mutate(mutation_rate))
-            .collect();
+    fn mutate(&self, chance: f32) -> Self {
+        let mut nodes: Vec<NodePhenotype> =
+            self.nodes.iter().map(|node| node.mutate(chance)).collect();
         let mut muscles: Vec<MusclePhenotype> = self
             .muscles
             .iter()
-            .map(|muscle| muscle.mutate(mutation_rate))
+            .map(|muscle| muscle.mutate(chance))
             .collect();
 
         let node_index_remove: usize = rand::thread_rng().gen_range(0..nodes.len());
         let muscle_index_remove: usize = rand::thread_rng().gen_range(0..muscles.len());
 
-        if rand::random::<f32>() > ELIMINATION_MUTATION_CHANCE && nodes.len() > 3 {
+        if nodes.len() > 3
+            && rand::random::<f32>() > chance * CONFIG.elimination_mutation_chance_modifier
+        {
             nodes.remove(node_index_remove);
         }
-        if rand::random::<f32>() > ELIMINATION_MUTATION_CHANCE {
+        if rand::random::<f32>() > chance * CONFIG.elimination_mutation_chance_modifier {
             muscles.remove(muscle_index_remove);
         }
-        if rand::random::<f32>() > CREATION_MUTATION_CHANCE {
+        if rand::random::<f32>() > chance * CONFIG.creation_mutation_chance_modifier {
             nodes.push(NodePhenotype::random());
         }
-        if rand::random::<f32>() > CREATION_MUTATION_CHANCE {
+        if rand::random::<f32>() > chance * CONFIG.creation_mutation_chance_modifier {
             let mut muscle = MusclePhenotype::random();
             muscle.nodes.0 = rand::thread_rng().gen_range(0..nodes.len());
             muscle.nodes.1 = rand::thread_rng().gen_range(0..nodes.len());

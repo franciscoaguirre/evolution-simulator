@@ -7,12 +7,12 @@ use std::{
 
 use ron::ser::{to_string_pretty, PrettyConfig};
 
-use crate::genetic_algorithm::operations::{Individual, Selective};
+use crate::{
+    config::CONFIG,
+    genetic_algorithm::operations::{Individual, Selective},
+};
 
 use super::runner::Runnable;
-
-const MAX_UNCHANGED_GENERATIONS: usize = 10;
-const IMPROVEMENT_THRESHOLD: f32 = 0.05;
 
 #[derive(Default)]
 pub struct SpeciesBasedAlgorithm<T: Individual + Selective> {
@@ -24,14 +24,20 @@ pub struct SpeciesBasedAlgorithm<T: Individual + Selective> {
     previous_best_by_species: HashMap<usize, (f32, usize)>,
     new_population: Vec<T>,
     current_generation: usize,
+    mutation_chance: f32,
 }
 
 impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
-    fn produce_children(first_parent: &T, second_parent: &T, offspring_population: &mut Vec<T>) {
+    fn produce_children(
+        first_parent: &T,
+        second_parent: &T,
+        offspring_population: &mut Vec<T>,
+        mutation_chance: f32,
+    ) {
         let (mut first_child, mut second_child) = first_parent.breed(&second_parent);
 
-        first_child = first_child.mutate(1.0);
-        second_child = second_child.mutate(1.0);
+        first_child = first_child.mutate(mutation_chance);
+        second_child = second_child.mutate(mutation_chance);
         first_child.correct();
         second_child.correct();
         offspring_population.push(first_child);
@@ -40,10 +46,11 @@ impl<T: Individual + Selective> SpeciesBasedAlgorithm<T> {
 }
 
 impl<T: Individual + Selective + Default> SpeciesBasedAlgorithm<T> {
-    pub fn new(max_generations: usize, max_no_improvement: usize) -> Self {
+    pub fn new(max_generations: usize, max_no_improvement: usize, mutation_chance: f32) -> Self {
         SpeciesBasedAlgorithm {
             max_generations,
             max_no_improvement,
+            mutation_chance,
             ..Default::default()
         }
     }
@@ -110,7 +117,7 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
                     .get(species_size)
                     .unwrap_or(&(0.0, 0))
                     .1
-                    > MAX_UNCHANGED_GENERATIONS
+                    > CONFIG.max_unchanged_generations
             {
                 for (first_parent, second_parent) in species
                     .iter()
@@ -121,6 +128,7 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
                         first_parent,
                         second_parent,
                         &mut offspring_population,
+                        self.mutation_chance,
                     );
                 }
             } else {
@@ -129,7 +137,7 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
                     .entry(*species_size)
                     .or_insert((0.0, 0))
                     .0
-                    < species[0].get_fitness() + IMPROVEMENT_THRESHOLD
+                    < species[0].get_fitness() + CONFIG.improvement_threshold
                 {
                     self.previous_best_by_species
                         .insert(*species_size, (species[0].get_fitness(), 0));
@@ -154,6 +162,7 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
                         first_parent,
                         second_parent,
                         &mut offspring_population,
+                        self.mutation_chance,
                     );
                 }
             }
@@ -166,6 +175,7 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
                     first_parent,
                     second_parent,
                     &mut offspring_population,
+                    self.mutation_chance,
                 );
             }
         }

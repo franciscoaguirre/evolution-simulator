@@ -18,13 +18,16 @@ pub struct Algorithm<T: Individual> {
     current_unbeat_best: (f32, usize),
     new_population: Vec<T>,
     current_generation: usize,
+
+    mutation_chance: f32,
 }
 
 impl<T: Individual + Default> Algorithm<T> {
-    pub fn new(max_generations: usize, max_no_improvement: usize) -> Self {
+    pub fn new(max_generations: usize, max_no_improvement: usize, mutation_chance: f32) -> Self {
         Algorithm {
             max_generations,
             max_no_improvement,
+            mutation_chance,
             ..Default::default()
         }
     }
@@ -59,8 +62,8 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
         for chunk in self.population.chunks(2) {
             let (mut first_child, mut second_child) = chunk[0].breed(&chunk[1]);
 
-            first_child = first_child.mutate(1.0);
-            second_child = second_child.mutate(1.0);
+            first_child = first_child.mutate(self.mutation_chance);
+            second_child = second_child.mutate(self.mutation_chance);
             first_child.correct();
             second_child.correct();
             offspring_population.push(first_child);

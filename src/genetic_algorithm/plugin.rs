@@ -38,6 +38,7 @@ impl Plugin for GeneticAlgorithmPlugin {
                 algorithm: Box::new(CreatureSpeciesGA::new(
                     options.max_generations,
                     options.max_no_improvement,
+                    options.mutation_chance,
                 )),
             });
         } else {
@@ -46,6 +47,7 @@ impl Plugin for GeneticAlgorithmPlugin {
                 algorithm: Box::new(CreatureGA::new(
                     options.max_generations,
                     options.max_no_improvement,
+                    options.mutation_chance,
                 )),
             });
         }

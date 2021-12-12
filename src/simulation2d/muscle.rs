@@ -5,7 +5,6 @@ use bevy::prelude::*;
 use bevy_prototype_debug_lines::*;
 use structopt::StructOpt;
 
-use super::constants::{FIXED_TIME_STEP, FIXED_TIME_STEP_NANOSECONDS};
 use super::creature::Creature;
 use super::node;
 use super::physics::Velocity;
@@ -65,7 +64,7 @@ impl Plugin for MusclePlugin {
         app.add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(
-                    FIXED_TIME_STEP as f64 / CONFIG.time_scale as f64,
+                    CONFIG.fixed_time_step as f64 / CONFIG.time_scale as f64,
                 ))
                 .with_system(advance_internal_clocks.system())
                 .with_system(apply_forces.system()),
@@ -80,7 +79,7 @@ fn advance_internal_clocks(mut creatures: Query<&mut Creature>) {
     for mut creature in creatures.iter_mut() {
         creature
             .internal_clock
-            .tick(Duration::from_nanos(FIXED_TIME_STEP_NANOSECONDS));
+            .tick(Duration::from_nanos((CONFIG.fixed_time_step * 1e9) as u64));
 
         if creature.internal_clock.elapsed_secs() >= creature.chromosome.internal_clock_size {
             creature.internal_clock.reset();
@@ -113,7 +112,7 @@ fn apply_forces(
     let span = info_span!("system", name = "apply_forces");
     let _guard = span.enter();
 
-    let delta_time = FIXED_TIME_STEP;
+    let delta_time = CONFIG.fixed_time_step;
 
     for (muscle, parent) in muscles.iter() {
         let creature = creatures.get(parent.0).unwrap();

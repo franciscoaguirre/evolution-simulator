@@ -1,7 +1,6 @@
-use super::{
-    constants::{POSITION_MUTATION_CHANCE, SINGLE_VALUE_MUTATION_CHANCE},
-    operations::{Crossable, Mutable, RandomCreatable},
-};
+use crate::config::CONFIG;
+
+use super::operations::{Crossable, Mutable, RandomCreatable};
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -13,9 +12,6 @@ pub struct NodePhenotype {
     /// Resistance of node to movement
     pub friction: f32,
 }
-
-const MAX_FRICTION: f32 = 1.0;
-const MIN_FRICTION: f32 = 0.3;
 
 impl Crossable for NodePhenotype {
     fn cross(&self, other: &Self) -> Self {
@@ -31,21 +27,21 @@ impl Crossable for NodePhenotype {
 }
 
 impl Mutable for NodePhenotype {
-    fn mutate(&self, mutation_rate: f32) -> Self {
+    fn mutate(&self, chance: f32) -> Self {
         let mut position = self.position;
         let mut friction = self.friction;
 
-        if rand::random::<f32>() > POSITION_MUTATION_CHANCE {
-            position.x += ((rand::random::<f32>() * 2.0 - 1.0) * 0.1) * mutation_rate;
-            position.y += ((rand::random::<f32>() * 2.0 - 1.0) * 0.1) * mutation_rate;
+        if rand::random::<f32>() > chance * CONFIG.position_mutation_chance_modifier {
+            position.x += (rand::random::<f32>() * 2.0 - 1.0) * 0.1;
+            position.y += (rand::random::<f32>() * 2.0 - 1.0) * 0.1;
         }
 
         position.y = position.y.max(0.04);
 
-        if rand::random::<f32>() > SINGLE_VALUE_MUTATION_CHANCE {
-            friction += ((rand::random::<f32>() * 2.0 - 1.0) * 0.1) * mutation_rate;
+        if rand::random::<f32>() > chance * CONFIG.single_value_mutation_chance_modifier {
+            friction += (rand::random::<f32>() * 2.0 - 1.0) * 0.1;
 
-            friction = friction.clamp(MIN_FRICTION, MAX_FRICTION);
+            friction = friction.clamp(CONFIG.min_friction, CONFIG.max_friction);
         }
 
         NodePhenotype { position, friction }
@@ -59,7 +55,7 @@ impl RandomCreatable for NodePhenotype {
                 (rand::random::<f32>() * 2.0 - 1.0) * 0.4,
                 rand::random::<f32>() + 0.04 * 0.4,
             ),
-            friction: rand::random::<f32>().clamp(MIN_FRICTION, MAX_FRICTION),
+            friction: rand::random::<f32>().clamp(CONFIG.min_friction, CONFIG.max_friction),
         }
     }
 }
