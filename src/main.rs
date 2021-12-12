@@ -1,5 +1,6 @@
 #![feature(once_cell)]
 use std::time::Duration;
+use std::time::Instant;
 
 use arguments::Opt;
 use bevy::{
@@ -93,7 +94,29 @@ fn move_camera(
     }
 }
 
+struct ScopeCall<F: FnOnce()> {
+    pub c: Option<F>,
+}
+impl<F: FnOnce()> Drop for ScopeCall<F> {
+    fn drop(&mut self) {
+        self.c.take().unwrap()()
+    }
+}
+
+macro_rules! log_time {
+    ($($data: tt)*) => {
+        let start = Instant::now();
+        let _scope_call = ScopeCall {
+            c: Some(|| -> () {
+                println!("Elapsed time {:?}", start.elapsed().as_micros());
+            }),
+        };
+    };
+}
+
 fn main() {
+    log_time!();
+
     let options = Opt::from_args();
 
     let mut app = App::build();
