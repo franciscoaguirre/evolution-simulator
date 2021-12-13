@@ -109,7 +109,7 @@ macro_rules! log_time {
         let start = Instant::now();
         let _scope_call = ScopeCall {
             c: Some(|| -> () {
-                println!("Elapsed time {:?}", start.elapsed().as_micros());
+                info!("Elapsed time {:?}", start.elapsed().as_micros());
             }),
         };
     };
@@ -123,7 +123,7 @@ fn main() {
     let mut app = App::build();
 
     if options.headless {
-        println!("Running in headless mode");
+        info!("Running in headless mode");
 
         app.insert_resource(ScheduleRunnerSettings::run_loop(Duration::from_secs_f64(
             1.0 / 60.0,

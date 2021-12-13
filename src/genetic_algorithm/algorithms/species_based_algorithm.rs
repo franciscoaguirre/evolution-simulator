@@ -1,11 +1,6 @@
-use std::{
-    collections::HashMap,
-    fmt,
-    fs::File,
-    io::{BufWriter, Write},
-};
+use std::{collections::HashMap, fmt};
 
-use ron::ser::{to_string_pretty, PrettyConfig};
+use bevy::log::info;
 
 use crate::{
     config::CONFIG,
@@ -32,6 +27,7 @@ pub struct SpeciesBasedAlgorithm<T: Individual + Selective> {
     population_size: usize,
     testing: bool,
     max_test_count: usize,
+    instance_number: usize,
     testing_count: usize,
     instance_stats: InstanceStats,
 }
@@ -65,6 +61,7 @@ impl<T: Individual + Selective + Default> SpeciesBasedAlgorithm<T> {
         crossover_chance: f32,
         testing: bool,
         max_test_count: usize,
+        instance_number: usize,
     ) -> Self {
         SpeciesBasedAlgorithm {
             population_size,
@@ -74,6 +71,7 @@ impl<T: Individual + Selective + Default> SpeciesBasedAlgorithm<T> {
             crossover_chance,
             testing,
             max_test_count,
+            instance_number,
             ..Default::default()
         }
     }
@@ -258,7 +256,6 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
         let mut population: Vec<T> = self.new_population.clone();
         population.sort_by(|a, b| b.get_fitness().partial_cmp(&a.get_fitness()).unwrap());
 
-        let pretty_config = PrettyConfig::default();
         let best = population[0].clone();
         let worst = population.last().unwrap();
         let median = &population[population.len() / 2];
@@ -288,10 +285,11 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
         if self.testing {
             write_stat(
                 format!(
-                    "population_{}_mutation_{}_crossover_{}/instance_{}/generation_{}.ron",
+                    "experiments/population_{}_mutation_{}_crossover_{}/instance_{}/execution_{}/generation_{}.ron",
                     self.new_population.len(),
                     self.mutation_chance,
                     self.crossover_chance,
+                    self.instance_number,
                     self.testing_count,
                     generation_count
                 ),
@@ -303,49 +301,14 @@ impl<T: Individual + Selective + fmt::Debug> Runnable<T> for SpeciesBasedAlgorit
             );
 
             self.instance_stats.write(format!(
-                "population_{}_mutation_{}_crossover_{}/instance_{}/stats.ron",
+                "experiments/population_{}_mutation_{}_crossover_{}/instance_{}/execution_{}/stats.ron",
                 self.new_population.len(),
                 self.mutation_chance,
                 self.crossover_chance,
+                self.instance_number,
                 self.testing_count,
             ));
-
-            return;
         }
-
-        let buffer = File::create(format!("results_generation_{}.ron", generation_count)).unwrap();
-        let mut stream = BufWriter::new(buffer);
-
-        stream.write_all(b"Best: ").unwrap();
-        stream
-            .write_all(
-                to_string_pretty(&best, pretty_config.clone())
-                    .unwrap()
-                    .as_bytes(),
-            )
-            .unwrap();
-        stream.write_all(b"\n").unwrap();
-        stream.write_all(b"Worst: ").unwrap();
-        stream
-            .write_all(
-                to_string_pretty(&worst, pretty_config.clone())
-                    .unwrap()
-                    .as_bytes(),
-            )
-            .unwrap();
-        stream.write_all(b"\n").unwrap();
-        stream.write_all(b"Median: ").unwrap();
-        stream
-            .write_all(to_string_pretty(median, pretty_config).unwrap().as_bytes())
-            .unwrap();
-        stream.write_all(b"\n").unwrap();
-        stream.write_all(b"Mean: ").unwrap();
-        stream.write_all(mean_string.as_bytes()).unwrap();
-        stream.write_all(b"\n").unwrap();
-        stream.write_all(b"Std. Dev.: ").unwrap();
-        stream.write_all(std_dev_string.as_bytes()).unwrap();
-        stream.write_all(b"\n").unwrap();
-        stream.flush().unwrap();
     }
 
     fn get_should_end(&self) -> bool {

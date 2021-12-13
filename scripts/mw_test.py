@@ -9,14 +9,17 @@ configs = [
   "population_100_mutation_0.01_crossover_0.9",
 ]
 
+instances = ["0", "1", "2"]
+
 def main():
   average = {}
   for config in configs:
-    average[config] = []
-    for i in range(1, 31):
-        path = Path(f"{config}/instance_{i}/new_stats.txt")
-        with path.open() as f:
-            average[config].append(process_line(f))
+    for instance in instances:
+      average[config] = []
+      for i in range(1, 31):
+          path = Path(f"{config}/instance_{instance}/execution_{i}/new_stats.txt")
+          with path.open() as f:
+              average[config].append(process_line(f))
 
   for (key_1, key_2) in itertools.combinations(average.keys(), 2):
     print(f"{key_1} vs {key_2}")

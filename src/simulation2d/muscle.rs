@@ -7,7 +7,7 @@ use structopt::StructOpt;
 
 use super::creature::Creature;
 use super::node;
-use super::physics::Velocity;
+use super::physics::{AirFriction, Velocity};
 use crate::arguments::Opt;
 use crate::config::CONFIG;
 use crate::genetic_algorithm::muscle_phenotype::MusclePhenotype;
@@ -108,6 +108,7 @@ fn apply_forces(
     node_positions: Query<&Transform, With<node::Node>>,
     mut node_velocities: Query<&mut Velocity, With<node::Node>>,
     creatures: Query<&Creature>,
+    air_friction: Res<AirFriction>,
 ) {
     let span = info_span!("system", name = "apply_forces");
     let _guard = span.enter();
@@ -141,7 +142,7 @@ fn apply_forces(
         let force =
             ((muscle_length - target_length) / muscle_length.max(target_length)).powf(2.0) * sign;
 
-        let strength = muscle.strength * (1.0 / CONFIG.air_friction);
+        let strength = muscle.strength * (1.0 / air_friction.0);
 
         let mut first_node_velocity = node_velocities.get_mut(muscle.nodes.0).unwrap();
         first_node_velocity.0 += second_to_first_direction * force * strength * delta_time;

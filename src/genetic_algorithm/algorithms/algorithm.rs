@@ -3,6 +3,7 @@ use std::{
     io::{BufWriter, Write},
 };
 
+use bevy::log::info;
 use ron::ser::{to_string_pretty, PrettyConfig};
 
 use crate::genetic_algorithm::{
@@ -27,6 +28,7 @@ pub struct Algorithm<T: Individual> {
     population_size: usize,
     testing: bool,
     max_test_count: usize,
+    instance_number: usize,
     testing_count: usize,
     instance_stats: InstanceStats,
 }
@@ -40,6 +42,7 @@ impl<T: Individual + Default> Algorithm<T> {
         crossover_chance: f32,
         testing: bool,
         max_test_count: usize,
+        instance_number: usize,
     ) -> Self {
         Algorithm {
             population_size,
@@ -49,6 +52,7 @@ impl<T: Individual + Default> Algorithm<T> {
             crossover_chance,
             testing,
             max_test_count,
+            instance_number,
             ..Default::default()
         }
     }
@@ -177,10 +181,11 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
         if self.testing {
             write_stat(
                 format!(
-                    "population_{}_mutation_{}_crossover_{}/instance_{}/generation_{}.ron",
+                    "experiments/population_{}_mutation_{}_crossover_{}/instance_{}/execution_{}/generation_{}.ron",
                     self.new_population.len(),
                     self.mutation_chance,
                     self.crossover_chance,
+                    self.instance_number,
                     self.testing_count,
                     generation_count
                 ),
@@ -192,52 +197,14 @@ impl<T: Individual> Runnable<T> for Algorithm<T> {
             );
 
             self.instance_stats.write(format!(
-                "population_{}_mutation_{}_crossover_{}/instance_{}/stats.ron",
+                "experiments/population_{}_mutation_{}_crossover_{}/instance_{}/execution_{}/stats.ron",
                 self.new_population.len(),
                 self.mutation_chance,
                 self.crossover_chance,
+                self.instance_number,
                 self.testing_count,
             ));
-
-            return;
         }
-
-        let buffer = File::create(format!("results_generation_{}.ron", generation_count)).unwrap();
-        let mut stream = BufWriter::new(buffer);
-        stream.write(b"Best: ").unwrap();
-        stream
-            .write(
-                to_string_pretty(best, pretty_config.clone())
-                    .unwrap()
-                    .as_bytes(),
-            )
-            .unwrap();
-        stream.write(b"\n").unwrap();
-        stream.write(b"Worst: ").unwrap();
-        stream
-            .write(
-                to_string_pretty(worst, pretty_config.clone())
-                    .unwrap()
-                    .as_bytes(),
-            )
-            .unwrap();
-        stream.write(b"\n").unwrap();
-        stream.write(b"Mean: ").unwrap();
-        stream
-            .write(
-                to_string_pretty(median, pretty_config.clone())
-                    .unwrap()
-                    .as_bytes(),
-            )
-            .unwrap();
-        stream.write(b"\n").unwrap();
-        stream.write(b"Mean: ").unwrap();
-        stream.write(mean_string.as_bytes()).unwrap();
-        stream.write(b"\n").unwrap();
-        stream.write(b"Std. Dev.: ").unwrap();
-        stream.write(std_dev_string.as_bytes()).unwrap();
-        stream.write(b"\n").unwrap();
-        stream.flush().unwrap();
     }
 
     fn get_should_end(&self) -> bool {

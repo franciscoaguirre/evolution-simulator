@@ -1,9 +1,15 @@
+use bevy::log::info;
+use once_cell::sync::Lazy;
+use ron::de::from_reader;
+use serde::Deserialize;
+
 use std::fs::File;
 
-use ron::de::from_reader;
-
-use once_cell::sync::Lazy;
-use serde::Deserialize;
+#[derive(Debug, Deserialize)]
+pub struct Instance {
+    pub gravity: f32,
+    pub air_friction: f32,
+}
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
@@ -11,8 +17,6 @@ pub struct Config {
     pub evaluation_time: f32,
     pub time_scale: f32,
     pub fixed_time_step: f32,
-    pub gravity: f32,
-    pub air_friction: f32,
     pub node_size: f32,
 
     // Min and max values settings
@@ -36,6 +40,8 @@ pub struct Config {
     pub position_mutation_chance_modifier: f32,
     pub single_value_mutation_chance_modifier: f32,
     pub creation_mutation_chance_modifier: f32,
+
+    pub instances: Vec<Instance>,
 }
 
 impl Default for Config {
@@ -44,8 +50,6 @@ impl Default for Config {
             time_scale: 10.0,
             fixed_time_step: 0.01,
             evaluation_time: 15.0,
-            gravity: 10.0,
-            air_friction: 8.0,
             node_size: 0.08,
 
             min_friction: 0.3,
@@ -66,6 +70,21 @@ impl Default for Config {
             position_mutation_chance_modifier: 1.0,
             single_value_mutation_chance_modifier: 1.0,
             creation_mutation_chance_modifier: 3.0,
+
+            instances: vec![
+                Instance {
+                    gravity: 10.0,
+                    air_friction: 8.0,
+                },
+                Instance {
+                    gravity: 1.0,
+                    air_friction: 8.0,
+                },
+                Instance {
+                    gravity: 10.0,
+                    air_friction: 1.0,
+                },
+            ],
         }
     }
 }
@@ -75,11 +94,11 @@ pub static CONFIG: Lazy<Config> = Lazy::new(load_config);
 fn load_config() -> Config {
     match load_config_from_file() {
         Ok(x) => {
-            println!("Loaded config from file");
+            info!("Loaded config from file");
             x
         }
         Err(err) => {
-            println!("Config file error. {}. Using default config.", err.code);
+            info!("Config file error. {}. Using default config.", err.code);
             Config::default()
         }
     }

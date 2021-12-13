@@ -33,7 +33,7 @@ impl Plugin for GeneticAlgorithmPlugin {
         let options = Opt::from_args();
 
         if options.speciesism {
-            println!("Running speciesism GA");
+            info!("Running speciesism GA");
             app.insert_resource(GeneticAlgorithm {
                 algorithm: Box::new(CreatureSpeciesGA::new(
                     options.population_size,
@@ -43,10 +43,11 @@ impl Plugin for GeneticAlgorithmPlugin {
                     options.crossover_chance,
                     options.test,
                     options.test_count,
+                    options.instance,
                 )),
             });
         } else {
-            println!("Running regular speciesism GA");
+            info!("Running regular GA");
             app.insert_resource(GeneticAlgorithm {
                 algorithm: Box::new(CreatureGA::new(
                     options.population_size,
@@ -56,6 +57,7 @@ impl Plugin for GeneticAlgorithmPlugin {
                     options.crossover_chance,
                     options.test,
                     options.test_count,
+                    options.instance,
                 )),
             });
         }
@@ -81,7 +83,7 @@ fn reinitialize_genetic_algorithm(
     mut initialize_events: EventReader<InitializeEvent>,
 ) {
     if initialize_events.iter().count() > 0 {
-        println!("Reinitializing genetic algorithm");
+        info!("Reinitializing genetic algorithm");
         setup_ga(ga, start_evaluating_events);
     }
 }
@@ -130,7 +132,7 @@ fn check_should_end_simulation(
     mut reinitialize_genetic_algorithm: EventWriter<InitializeEvent>,
 ) {
     if ga.algorithm.get_should_end() {
-        println!("GA ended");
+        info!("GA ended");
         if ga.algorithm.is_testing() && !ga.algorithm.should_finish_testing() {
             reinitialize_genetic_algorithm.send(InitializeEvent);
             return;

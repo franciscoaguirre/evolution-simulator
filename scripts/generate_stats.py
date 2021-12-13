@@ -2,7 +2,7 @@ from pathlib import Path
 
 def main():
     for i in range(1, 31):
-        path = Path(f"instance_{i}")
+        path = Path(f"execution_{i}")
 
         count = 0
         best = 0
