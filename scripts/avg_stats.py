@@ -8,7 +8,7 @@ def main():
     standard_deviation = 0
     count = 0
     for i in range(1, 31):
-        path = Path(f"instance_{i}/new_stats.txt")
+        path = Path(f"execution_{i}/new_stats.txt")
         with path.open() as f:
             best += process_line(f)
             worst += process_line(f)

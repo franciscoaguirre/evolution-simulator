@@ -19,8 +19,14 @@ pub struct SimulationPlugin;
 
 impl Plugin for SimulationPlugin {
     fn build(&self, app: &mut AppBuilder) {
+        let options = Opt::from_args();
+        let selected_instance = &CONFIG.instances[options.instance];
+
         app.add_plugin(MusclePlugin)
-            .add_plugin(PhysicsPlugin)
+            .add_plugin(PhysicsPlugin::new(
+                selected_instance.gravity,
+                selected_instance.air_friction,
+            ))
             .add_event::<StartEvaluatingEvent>()
             .add_event::<FinishedEvaluatingEvent>()
             .add_event::<InitializeEvent>()
@@ -99,7 +105,7 @@ fn simulate_headless(
             create_creature_headless(&mut commands, chromosome.clone(), CONFIG.node_size);
         }
 
-        println!("Time spent: {:?}", real_stopwatch.0.elapsed());
+        info!("Time spent: {:?}", real_stopwatch.0.elapsed());
         stopwatch.0.reset();
         stopwatch.0.unpause();
 

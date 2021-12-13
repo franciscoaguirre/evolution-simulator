@@ -9,9 +9,14 @@ use crate::{
         creature_chromosome::CreatureChromosome,
         operations::{Correctable, RandomCreatable},
     },
+    simulation2d::plugin::calculate_creatures_position,
 };
 
-use super::{creature::create_creature, resources::EvaluationStopwatch};
+use super::{
+    creature::{create_creature, Creature},
+    node::Node,
+    resources::EvaluationStopwatch,
+};
 
 pub struct PlaygroundPlugin;
 
@@ -62,8 +67,15 @@ fn read_chromosome() -> Result<CreatureChromosome, ron::error::Error> {
 fn check_should_end(
     evaluation_stopwatch: Res<EvaluationStopwatch>,
     mut app_exit_events: EventWriter<AppExit>,
+    query: Query<Entity, With<Creature>>,
+    collider_node_positions: Query<(&Transform, &Parent), With<Node>>,
 ) {
     if evaluation_stopwatch.0.elapsed_secs() >= CONFIG.evaluation_time {
+        let entity = query.single().unwrap();
+        info!(
+            "{}",
+            calculate_creatures_position(entity, &collider_node_positions)
+        );
         app_exit_events.send(AppExit);
     }
 }

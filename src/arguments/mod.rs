@@ -50,4 +50,9 @@ pub struct Opt {
     /// only used if test is true
     #[structopt(long = "test-count", default_value = "10")]
     pub test_count: usize,
+
+    /// Instance to run the algorithm on
+    /// Instances are defined in config.ron
+    #[structopt(long, default_value = "0")]
+    pub instance: usize,
 }
